@@ -46,7 +46,7 @@ export function MoonMap() {
             onClick={() => setParam("siteIdx", i)}
             className={clsx(
               "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition",
-              i === params.siteIdx ? "border-sun/60 bg-sun/10 text-text" : "border-line text-muted hover:text-text",
+              i === params.siteIdx ? "border-accent bg-accent/15" : "border-line text-muted hover:text-text",
             )}
           >
             <i className="size-2 rounded-full" style={{ backgroundColor: colors[verdicts[i]] }} />

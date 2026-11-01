@@ -55,7 +55,7 @@ export function Timeline() {
           type="button"
           onClick={() => setPlaying(!playing)}
           aria-label={playing ? "Pause" : "Play"}
-          className="grid size-8 place-items-center rounded-full bg-sun text-bg hover:bg-[#FFD58F]"
+          className="grid size-8 place-items-center rounded-full bg-accent text-white hover:bg-accent/80"
         >
           {playing ? <Pause size={14} /> : <Play size={14} />}
         </button>

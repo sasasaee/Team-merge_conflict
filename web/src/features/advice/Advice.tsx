@@ -7,13 +7,13 @@ const DELAY_TESTS = [24, 72, 120];
 
 function FixRow({ icon: Icon, text, result, onApply }: { icon: LucideIcon; text: string; result: SimResult; onApply: () => void }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded-lg border border-line/60 bg-bg/40 p-3">
+    <div className="flex items-center justify-between gap-2 rounded-lg border border-line bg-surface-2/60 p-3">
       <span className="flex items-center gap-2 text-xs">
         <Icon size={16} className="text-accent" />
         {text}
         <Badge tone={result.verdict}>{VERDICT_LABEL[result.verdict]}</Badge>
       </span>
-      <button type="button" onClick={onApply} className="rounded-full bg-sun px-3 py-1 text-xs font-semibold text-bg hover:bg-[#FFD58F]">
+      <button type="button" onClick={onApply} className="rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-white hover:bg-accent/80">
         Apply
       </button>
     </div>
