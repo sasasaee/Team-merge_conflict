@@ -1,11 +1,11 @@
 import { SITES, VERDICT_LABEL, useMission, useSim } from "@/core";
-import { Badge } from "@/ui";
+import { Badge, NavBar } from "@/ui";
 
 const FEATURES = [
-  ["Finds the sunlight", "Shows when each landing site is sunlit or in shadow, hour by hour, so the lander can keep charging."],
-  ["Tracks contact with Earth", "Warns when mountains will block the radio link and for how long the lander goes silent."],
-  ["Stress-tests the plan", "Replays the mission with a late landing, weaker solar panels and more power use to see if it still works."],
-  ["Suggests the smallest fix", "When a plan fails, it explains why and offers the easiest rescue: a later date or a nearby site."],
+  ["Mission planner", "Set a site, date, battery and power use. See sunlight, Earth contact and the battery hour by hour.", "#/plan"],
+  ["Rescue Mode", "Something goes wrong after touchdown. Make the right moves in 60 seconds to keep the lander alive.", "#/rescue"],
+  ["Survival Calendar", "Sixty landing dates coloured by result, with the earliest date the mission fails.", "#/calendar"],
+  ["Shadow DNA", "A fingerprint of light and signal for every site, side by side.", "#/sites"],
 ];
 
 const STEPS = [
@@ -20,14 +20,7 @@ export function Home() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 lg:px-8">
-      <nav className="flex items-center justify-between py-6">
-        <span className="flex items-center gap-3 text-lg font-bold">
-          <img src="/favicon.svg" alt="" className="size-8" /> MoonScope
-        </span>
-        <a href="#/plan" className="text-sm font-semibold text-text/80 hover:text-text">
-          Open the planner
-        </a>
-      </nav>
+      <NavBar current="#/" />
 
       <section className="grid items-center gap-12 py-16 lg:grid-cols-[1.2fr_1fr] lg:py-24">
         <div>
@@ -40,8 +33,8 @@ export function Home() {
             <a href="#/plan" className="rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white hover:bg-accent/85">
               Open the planner
             </a>
-            <a href="#what" className="rounded-full border border-line px-6 py-3 text-sm font-semibold hover:border-muted">
-              See what it does
+            <a href="#/rescue" className="rounded-full border border-line px-6 py-3 text-sm font-semibold hover:border-muted">
+              Try Rescue Mode
             </a>
           </div>
         </div>
@@ -79,11 +72,12 @@ export function Home() {
       <section id="what" className="border-t border-line py-20">
         <h2 className="text-3xl font-bold md:text-4xl">What MoonScope does</h2>
         <div className="mt-10 grid gap-8 sm:grid-cols-2">
-          {FEATURES.map(([title, body]) => (
-            <div key={title}>
+          {FEATURES.map(([title, body, href]) => (
+            <a key={title} href={href} className="rounded-2xl border border-line bg-surface/60 p-6 transition hover:border-accent">
               <h3 className="text-lg font-semibold text-sun">{title}</h3>
               <p className="mt-2 leading-relaxed text-text/75">{body}</p>
-            </div>
+              <span className="mt-4 inline-block text-sm font-semibold text-accent">Open {title}</span>
+            </a>
           ))}
         </div>
       </section>

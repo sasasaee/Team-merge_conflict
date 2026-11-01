@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 
-// Two pages, no router library: "#/plan" opens the planner, anything else is home.
-export type Page = "home" | "plan";
+// Pages without a router library: the URL hash picks the page.
+export const PAGES = ["#/", "#/plan", "#/rescue", "#/calendar", "#/sites"] as const;
+export type Page = (typeof PAGES)[number];
 
-const read = (): Page => (window.location.hash === "#/plan" ? "plan" : "home");
+const read = (): Page => {
+  const h = window.location.hash as Page;
+  return PAGES.includes(h) ? h : "#/";
+};
 
 export function usePage(): Page {
   const [page, setPage] = useState<Page>(read);

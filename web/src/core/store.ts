@@ -8,6 +8,7 @@ type MissionState = {
   timeH: number;
   playing: boolean;
   setParam: <K extends keyof MissionParams>(key: K, value: MissionParams[K]) => void;
+  patch: (changes: Partial<MissionParams>) => void;
   setTime: (h: number) => void;
   setPlaying: (playing: boolean) => void;
 };
@@ -28,6 +29,11 @@ export const useMission = create<MissionState>((set) => ({
   setParam: (key, value) =>
     set((s) => {
       const params = { ...s.params, [key]: value };
+      return { params, timeH: Math.min(s.timeH, params.durationDays * 24 - 1) };
+    }),
+  patch: (changes) =>
+    set((s) => {
+      const params = { ...s.params, ...changes };
       return { params, timeH: Math.min(s.timeH, params.durationDays * 24 - 1) };
     }),
   setTime: (h) => set({ timeH: h }),

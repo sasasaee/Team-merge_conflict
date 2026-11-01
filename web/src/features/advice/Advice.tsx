@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { AlertTriangle, CalendarClock, CheckCircle2, MapPin, type LucideIcon } from "lucide-react";
-import { SITES, VERDICT_LABEL, findBestSite, findSmallestDelay, simulate, useMission, useSim, type SimResult } from "@/core";
+import { MAX_DELAY_H, SITES, VERDICT_LABEL, findBestSite, findSmallestDelay, simulate, useMission, useSim, type SimResult } from "@/core";
 import { Badge } from "@/ui";
 
 const DELAY_TESTS = [24, 72, 120];
@@ -66,7 +66,7 @@ export function Advice() {
           icon={CalendarClock}
           text={`Land ${delayFix.delayH / 24} day${delayFix.delayH > 24 ? "s" : ""} later`}
           result={delayFix.result}
-          onApply={() => setParam("delayH", Math.min(240, params.delayH + delayFix.delayH))}
+          onApply={() => setParam("delayH", Math.min(MAX_DELAY_H, params.delayH + delayFix.delayH))}
         />
       )}
       {siteFix && (
