@@ -1,0 +1,14 @@
+﻿node_modules/
+dist/
+.vite/
+*.log
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+pipeline/kernels/
+pipeline/dem/
+__pycache__/
+.venv/

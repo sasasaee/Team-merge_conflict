@@ -1,0 +1,8 @@
+{
+  "name": "moonscope",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --dir web dev",
+    "build": "pnpm --dir web build"
+  }
+}
