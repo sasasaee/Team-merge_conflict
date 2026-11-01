@@ -8,13 +8,13 @@ export function Header() {
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface/80 px-5 py-3">
-      <div className="flex items-center gap-3">
+      <a href="#/" className="flex items-center gap-3" aria-label="Back to home">
         <img src="/favicon.svg" alt="" className="size-8" />
         <div>
           <h1 className="text-base font-bold tracking-tight">MoonScope</h1>
-          <p className="text-xs text-muted">Lunar landing site navigator · mission stress test</p>
+          <p className="text-xs text-muted">Lunar landing site navigator</p>
         </div>
-      </div>
+      </a>
       <div className="flex flex-wrap items-center gap-4 text-xs text-muted">
         <span>
           Site <b className="text-text">{SITES[siteIdx].name}</b>
