@@ -96,10 +96,6 @@ export function Home() {
           Start planning a mission
         </a>
       </section>
-
-      <footer className="border-t border-line py-8 text-sm text-muted">
-        Built for the NASA Space Apps Challenge 2026 by team Merge_Conflict. Uses NASA LRO and SPICE data (sample data in this prototype).
-      </footer>
     </div>
   );
 }
