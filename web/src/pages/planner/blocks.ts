@@ -1,5 +1,7 @@
 // THE LEGO BOARD.
-// Every feature is one brick. To add, remove or reorder a panel, edit this list only.
+// Every feature is one brick. To add, remove, reorder or resize a panel, edit this list only.
+// span(brick, "lg:col-span-N") sets a panel's width: 12 columns = full row on laptop.
+// Write the full class name so Tailwind can find it.
 import type { Block } from "@/ui";
 import { moonMap } from "@/features/moon-map";
 import { localSky } from "@/features/local-sky";
@@ -12,4 +14,22 @@ import { advice } from "@/features/advice";
 import { alerts } from "@/features/alerts";
 import { ask } from "@/features/ask";
 
-export const BLOCKS: Block[] = [moonMap, localSky, missionForm, metrics, timeline, landerView, compare, advice, alerts, ask];
+const span = (b: Block, cls: string): Block => ({ ...b, span: cls });
+
+export const BLOCKS: Block[] = [
+  // Row 1: where, sky, settings
+  span(moonMap, "lg:col-span-5"),
+  span(localSky, "lg:col-span-4"),
+  span(missionForm, "lg:col-span-3"),
+  // Row 2: the whole mission at a glance
+  span(timeline, "lg:col-span-12"),
+  // Row 3: numbers + what the lander sees
+  span(metrics, "lg:col-span-4"),
+  span(landerView, "lg:col-span-8"),
+  // Row 4: compare plans
+  span(compare, "lg:col-span-12"),
+  // Row 5: verdict, events, questions
+  span(advice, "lg:col-span-4"),
+  span(alerts, "lg:col-span-4"),
+  span(ask, "lg:col-span-4"),
+];
