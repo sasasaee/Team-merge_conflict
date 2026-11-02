@@ -72,13 +72,6 @@ export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1): SimRe
   };
 }
 
-export const SCENARIOS = [
-  { id: "nominal", label: "Nominal plan", delayH: 0, eff: 1 },
-  { id: "early", label: "Land 24 h earlier", delayH: -24, eff: 1 },
-  { id: "delay5", label: "Delayed 5 days", delayH: 120, eff: 1 },
-  { id: "panels", label: "Panels 20% weaker", delayH: 0, eff: 0.8 },
-] as const;
-
 export function findSmallestDelay(p: MissionParams): { delayH: number; result: SimResult } | null {
   for (let d = 24; d <= 240; d += 24) {
     const result = simulate(p, d);
