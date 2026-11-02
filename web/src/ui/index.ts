@@ -4,6 +4,7 @@ export { Badge } from "./Badge";
 export { StatTile } from "./StatTile";
 export { Slider } from "./Slider";
 export { Select } from "./Select";
+export { Button, buttonClass, type ButtonSize, type ButtonVariant } from "./Button";
 export { NavBar } from "./NavBar";
 export { colors, toneBg, toneText, type Tone } from "./theme";
 export type { Block } from "./block";
