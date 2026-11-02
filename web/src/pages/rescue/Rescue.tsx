@@ -75,7 +75,7 @@ function Game({ game, setGame }: { game: RescueState; setGame: (g: RescueState |
 
   return (
     <section className="grid gap-5 py-6 lg:grid-cols-[1fr_360px]">
-      <div className="space-y-5">
+      <div className="flex flex-col gap-5">
         <div className="rounded-2xl border border-fail/40 bg-fail/10 px-5 py-3 text-sm">
           <b className="text-fail">{game.crisis.title}.</b> {game.crisis.story}
         </div>
@@ -105,7 +105,8 @@ function Game({ game, setGame }: { game: RescueState; setGame: (g: RescueState |
           </div>
         </div>
 
-        <div className="rounded-2xl border border-line bg-surface p-4">
+        {/* On phones the panorama drops below the moves so players can act without scrolling */}
+        <div className="order-last rounded-2xl border border-line bg-surface p-4 lg:order-none">
           <Panorama siteIdx={game.params.siteIdx} hour={game.startH + game.t} horizonDrop={game.horizonDrop} />
         </div>
 
