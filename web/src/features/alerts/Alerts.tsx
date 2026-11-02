@@ -25,12 +25,11 @@ export function Alerts() {
             onClick={() => setTime(e.hour)}
             className={clsx(
               "flex w-full gap-3 rounded-md px-2 py-1 text-left hover:bg-surface-2",
-              e.hour > timeH && "opacity-45",
-              i === nextIdx && "bg-surface-2 opacity-100",
+              i === nextIdx && "bg-surface-2",
             )}
           >
             <span className="num w-14 shrink-0 text-muted">T+{e.hour}h</span>
-            <span className={e.tone === "muted" ? "text-text" : toneText[e.tone]}>{e.text}</span>
+            <span className={e.hour > timeH && i !== nextIdx ? "text-muted" : e.tone === "muted" ? "text-text" : toneText[e.tone]}>{e.text}</span>
           </button>
         </li>
       ))}

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Gauge } from "lucide-react";
-import { Badge, Button, NavBar, Panel, Select, Slider, StatTile, buttonClass, colors, type Tone } from "@/ui";
+import { Badge, Button, NavBar, Panel, PanelSkeleton, Select, Slider, Skeleton, StatTile, buttonClass, colors, type Tone } from "@/ui";
 
 // UI kit: every shared piece on one page, so the team can copy the right one.
 // Open it at #/kit. Not linked in the top menu on purpose.
@@ -12,7 +12,8 @@ const TOKENS: { name: keyof typeof colors; cls: string; use: string }[] = [
   { name: "line", cls: "line", use: "Borders and dividers" },
   { name: "text", cls: "text", use: "Main text" },
   { name: "muted", cls: "muted", use: "Labels and hints" },
-  { name: "accent", cls: "accent", use: "Buttons, focus, active" },
+  { name: "accent", cls: "accent", use: "Button fills, active states" },
+  { name: "accentSoft", cls: "accent-soft", use: "Accent text, icons, focus ring" },
   { name: "sun", cls: "sun", use: "Sunlight" },
   { name: "earth", cls: "earth", use: "Earth link" },
   { name: "moon", cls: "moon", use: "Moon surface" },
@@ -151,6 +152,29 @@ export function Kit() {
             <p className="text-sm text-text/80">Brick content goes here. Panels scroll inside if the content is tall.</p>
           </Panel>
         </div>
+      </Section>
+
+      <Section title="Loading" note="<Skeleton className> for any shape, <PanelSkeleton /> for a whole panel while data loads.">
+        <div className="grid gap-4 lg:grid-cols-12">
+          <Panel title="Loading brick" icon={<Gauge size={16} />} className="lg:col-span-6">
+            <PanelSkeleton />
+          </Panel>
+          <div className="space-y-3 lg:col-span-6">
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-10 w-40 rounded-full" />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Accessibility" note="Rules every page follows (checked with axe: WCAG 2 AA).">
+        <ul className="list-disc space-y-1.5 pl-5 text-sm text-text/80">
+          <li>Text contrast at least 4.5:1. Use text-accent-soft, never text-accent, for accent-coloured text on dark backgrounds.</li>
+          <li>Every input has a visible label or an aria-label.</li>
+          <li>Everything works with the keyboard: Tab to move, arrow keys on sliders. A purple focus ring shows where you are.</li>
+          <li>Icon-only buttons have an aria-label (for example the play and remove buttons).</li>
+          <li>Animations stop when the operating system asks for reduced motion.</li>
+        </ul>
       </Section>
 
       <Section title="Shape and spacing" note="Keep to these so every page feels the same.">

@@ -59,7 +59,7 @@ export function Timeline() {
         >
           {playing ? <Pause size={14} /> : <Play size={14} />}
         </button>
-        <input type="range" min={0} max={n - 1} value={timeH} onChange={(e) => setTime(Number(e.target.value))} className="flex-1 accent-accent" />
+        <input type="range" aria-label="Mission time" min={0} max={n - 1} value={timeH} onChange={(e) => setTime(Number(e.target.value))} className="flex-1 accent-accent" />
         <span className="num w-28 text-right text-xs">
           Day {Math.floor(timeH / 24) + 1}, {String(timeH % 24).padStart(2, "0")}:00
         </span>

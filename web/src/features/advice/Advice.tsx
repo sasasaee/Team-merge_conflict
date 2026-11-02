@@ -9,7 +9,7 @@ function FixRow({ icon: Icon, text, result, onApply }: { icon: LucideIcon; text:
   return (
     <div className="flex items-center justify-between gap-2 rounded-lg border border-line bg-surface-2/60 p-3">
       <span className="flex items-center gap-2 text-xs">
-        <Icon size={16} className="text-accent" />
+        <Icon size={16} className="text-accent-soft" />
         {text}
         <Badge tone={result.verdict}>{VERDICT_LABEL[result.verdict]}</Badge>
       </span>

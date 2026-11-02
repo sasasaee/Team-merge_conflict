@@ -12,8 +12,9 @@ export const colors = {
   moon: "#9CA3AF",
   ok: "#22C55E",
   warn: "#F59E0B",
-  fail: "#EF4444",
-  accent: "#8B5CF6",
+  fail: "#F87171",
+  accent: "#7C3AED",
+  accentSoft: "#A78BFA",
 } as const;
 
 export type Tone = "ok" | "warn" | "fail" | "muted" | "accent" | "sun" | "earth";
@@ -23,7 +24,7 @@ export const toneText: Record<Tone, string> = {
   warn: "text-warn",
   fail: "text-fail",
   muted: "text-muted",
-  accent: "text-accent",
+  accent: "text-accent-soft",
   sun: "text-sun",
   earth: "text-earth",
 };

@@ -4,7 +4,7 @@ import { RESERVE_FRACTION, VERDICT_LABEL, runScenario, simulate, useMission } fr
 import { Badge, colors } from "@/ui";
 
 // Slot colours: the plan first, then up to 4 scenarios in the order they were added
-const LINE_COLORS = [colors.text, colors.earth, colors.sun, colors.accent, colors.fail];
+const LINE_COLORS = [colors.text, colors.earth, colors.sun, colors.accentSoft, colors.fail];
 
 export function Compare() {
   const params = useMission((s) => s.params);

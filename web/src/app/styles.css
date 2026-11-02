@@ -14,8 +14,9 @@
 
   --color-ok: #22c55e;
   --color-warn: #f59e0b;
-  --color-fail: #ef4444;
-  --color-accent: #8b5cf6;
+  --color-fail: #f87171;
+  --color-accent: #7c3aed; /* fills: buttons, active states (white text passes 4.5:1) */
+  --color-accent-soft: #a78bfa; /* accent text and icons on dark backgrounds */
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -43,6 +44,35 @@ body {
   background-size: auto 100%;
   background-repeat: repeat-x;
   animation: moon-spin 90s linear infinite;
+}
+
+/* Keyboard users always see where they are */
+:focus-visible {
+  outline: 2px solid var(--color-accent-soft);
+  outline-offset: 2px;
+}
+
+/* Skeleton shimmer for loading states */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-line) 50%, var(--color-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+/* Respect "reduce motion" in the operating system */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @keyframes moon-spin {

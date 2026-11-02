@@ -76,7 +76,7 @@ export function Home() {
             <a key={title} href={href} className="rounded-2xl border border-line bg-surface/60 p-6 transition hover:border-accent">
               <h3 className="text-lg font-semibold text-sun">{title}</h3>
               <p className="mt-2 leading-relaxed text-text/75">{body}</p>
-              <span className="mt-4 inline-block text-sm font-semibold text-accent">Open {title}</span>
+              <span className="mt-4 inline-block text-sm font-semibold text-accent-soft">Open {title}</span>
             </a>
           ))}
         </div>
@@ -87,7 +87,7 @@ export function Home() {
         <ol className="mt-10 grid gap-8 md:grid-cols-3">
           {STEPS.map((s, i) => (
             <li key={s} className="flex gap-4">
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent/20 font-bold text-accent">{i + 1}</span>
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent/20 font-bold text-accent-soft">{i + 1}</span>
               <p className="leading-relaxed text-text/80">{s}</p>
             </li>
           ))}

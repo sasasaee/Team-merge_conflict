@@ -51,7 +51,7 @@ function Intro({ onStart }: { onStart: (c: Crisis) => void }) {
           >
             <div className="text-lg font-semibold text-fail">{c.title}</div>
             <p className="mt-2 text-sm text-text/75">{c.story}</p>
-            <span className="mt-4 inline-block text-sm font-semibold text-accent">Start the rescue</span>
+            <span className="mt-4 inline-block text-sm font-semibold text-accent-soft">Start the rescue</span>
           </button>
         ))}
       </div>
