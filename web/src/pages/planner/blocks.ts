@@ -10,6 +10,7 @@ import { metrics } from "@/features/metrics";
 import { timeline } from "@/features/timeline";
 import { landerView } from "@/features/lander-view";
 import { compare } from "@/features/compare";
+import { whatIf } from "@/features/what-if";
 import { advice } from "@/features/advice";
 import { alerts } from "@/features/alerts";
 import { ask } from "@/features/ask";
@@ -26,8 +27,9 @@ export const BLOCKS: Block[] = [
   // Row 3: numbers + what the lander sees
   span(metrics, "lg:col-span-4"),
   span(landerView, "lg:col-span-8"),
-  // Row 4: compare plans
-  span(compare, "lg:col-span-12"),
+  // Row 4: build what-if scenarios, compare them with the plan
+  span(whatIf, "lg:col-span-4"),
+  span(compare, "lg:col-span-8"),
   // Row 5: verdict, events, questions
   span(advice, "lg:col-span-4"),
   span(alerts, "lg:col-span-4"),
