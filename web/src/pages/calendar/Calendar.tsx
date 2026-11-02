@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import clsx from "clsx";
 import { CALENDAR_DAYS, SITES, VERDICT_LABEL, landingDate, landingLabel, simulate, useMission } from "@/core";
-import { NavBar, Select } from "@/ui";
+import { Select } from "@/ui";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const COLOR = { ok: "bg-ok/25 border-ok/50", warn: "bg-warn/25 border-warn/50", fail: "bg-fail/25 border-fail/50" } as const;
@@ -31,7 +31,6 @@ export function Calendar() {
 
   return (
     <div className="mx-auto max-w-[1100px] px-5 pb-12 lg:px-8">
-      <NavBar current="#/calendar" />
       <section className="py-8">
         <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Survival Calendar</h1>
         <p className="mt-3 max-w-[62ch] text-text/80">

@@ -18,7 +18,7 @@ import {
   type RescueState,
 } from "@/core";
 import { Panorama } from "@/features/lander-view";
-import { NavBar, Select, toneText } from "@/ui";
+import { Select, toneText } from "@/ui";
 
 const TICK_MS = 450; // one mission hour every 0.45 s, so 72 h is about 30 s plus your moves
 
@@ -182,7 +182,6 @@ export function Rescue() {
 
   return (
     <div className="mx-auto max-w-[1300px] px-5 pb-12 lg:px-8">
-      <NavBar current="#/rescue" />
       {game ? <Game game={game} setGame={setGame} /> : <Intro onStart={(c) => setGame(startRescue(c, params))} />}
     </div>
   );

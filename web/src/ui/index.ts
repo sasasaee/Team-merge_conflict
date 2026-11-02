@@ -2,6 +2,7 @@
 export { Panel } from "./Panel";
 export { Badge } from "./Badge";
 export { StatTile } from "./StatTile";
+export { CountUp } from "./CountUp";
 export { Slider } from "./Slider";
 export { Select } from "./Select";
 export { Button, buttonClass, type ButtonSize, type ButtonVariant } from "./Button";

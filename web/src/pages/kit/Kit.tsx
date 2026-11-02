@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Gauge } from "lucide-react";
-import { Badge, Button, NavBar, Panel, PanelSkeleton, Select, Slider, Skeleton, StatTile, buttonClass, colors, type Tone } from "@/ui";
+import { Badge, Button, Panel, PanelSkeleton, Select, Slider, Skeleton, StatTile, buttonClass, colors, type Tone } from "@/ui";
 
 // UI kit: every shared piece on one page, so the team can copy the right one.
 // Open it at #/kit. Not linked in the top menu on purpose.
@@ -23,10 +23,10 @@ const TOKENS: { name: keyof typeof colors; cls: string; use: string }[] = [
 ];
 
 const TYPE = [
-  ["Display", "text-5xl md:text-7xl font-extrabold tracking-tight", "Page hero"],
-  ["H1", "text-4xl md:text-5xl font-extrabold tracking-tight", "Page title"],
-  ["H2", "text-3xl font-bold", "Section title"],
-  ["H3", "text-lg font-semibold", "Card title"],
+  ["Display", "font-display text-5xl md:text-7xl font-bold tracking-tight", "Page hero"],
+  ["H1", "font-display text-4xl md:text-5xl font-bold tracking-tight", "Page title"],
+  ["H2", "font-display text-3xl font-bold", "Section title"],
+  ["H3", "font-display text-lg font-semibold", "Card title"],
   ["Body", "text-base leading-relaxed", "Paragraphs"],
   ["Small", "text-sm", "Panel text"],
   ["Label", "text-xs text-muted", "Form labels"],
@@ -55,7 +55,6 @@ export function Kit() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 pb-16 lg:px-8">
-      <NavBar current="#/kit" />
 
       <header className="py-8">
         <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">UI kit</h1>
@@ -81,7 +80,7 @@ export function Kit() {
         </div>
       </Section>
 
-      <Section title="Typography" note="Inter for text, JetBrains Mono for numbers (add the num class).">
+      <Section title="Typography" note="Space Grotesk for headings (h1-h3 get it automatically), Inter for text, JetBrains Mono for numbers (add the num class).">
         <div className="divide-y divide-line rounded-2xl border border-line bg-surface">
           {TYPE.map(([name, cls, use]) => (
             <div key={name} className="grid items-baseline gap-2 p-4 md:grid-cols-[120px_1fr_260px]">

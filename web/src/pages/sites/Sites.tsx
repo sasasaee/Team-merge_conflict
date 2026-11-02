@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { HOURS, SITES, getSite, siteDna, useMission } from "@/core";
-import { NavBar, colors } from "@/ui";
+import { colors } from "@/ui";
 
 const R_OUT = 70;
 const R_IN = 54;
@@ -38,7 +38,6 @@ export function Sites() {
 
   return (
     <div className="mx-auto max-w-[1300px] px-5 pb-12 lg:px-8">
-      <NavBar current="#/sites" />
       <section className="py-8">
         <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Shadow DNA</h1>
         <p className="mt-3 max-w-[64ch] text-text/80">
