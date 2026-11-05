@@ -1,63 +1,91 @@
-// TEMPORARY simulator so the UI shows live numbers. R3 replaces the inside of these functions.
+// R3 – Mission Simulator Logic. UI reads from these pure functions; no React imports here.
 import { HOURS, SITES, getSite, wrapHour } from "./sites";
 import type { Cause, MissionParams, SimResult, Verdict } from "./types";
 
-const PANEL_AREA_M2 = 10;
-const SUN_KW_PER_M2 = 1.361;
-export const RESERVE_FRACTION = 0.25;
+const PANEL_AREA_M2 = 10;        // m²  — fixed hardware constant
+const SUN_KW_PER_M2 = 1.361;     // kW/m² solar constant at the Moon
+export const RESERVE_FRACTION = 0.25; // below 25 % of capacity = power failure
 
 export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1): SimResult {
   const s = getSite(p.siteIdx);
   const n = Math.min(p.durationDays * 24, HOURS);
+
+  // Gross solar power (kW) the panels can deliver when fully illuminated
   const panelKw = PANEL_AREA_M2 * p.panelEff * effScale * SUN_KW_PER_M2;
+  // Battery reserve floor — lander must stay above this level
   const reserve = p.batteryKwh * RESERVE_FRACTION;
 
-  let soc = p.batteryKwh;
+  // ── State ────────────────────────────────────────────────────────────────
+  let soc = p.batteryKwh;       // start fully charged (kWh)
   let minSoc = soc;
   let failHour: number | null = null;
   let cause: Cause = null;
-  let lit = 0;
-  let ok = 0;
-  let run = 0;
-  let longest = 0;
-  let dayOk = 0;
-  let worstDay = 24;
+
+  // Sunlight counters
+  let litH = 0;                 // total illuminated hours
+
+  // Earth-link counters
+  let earthOkH = 0;             // total "ok"-link hours
+  let blackoutRun = 0;          // current consecutive "lost" streak
+  let longestBlackout = 0;      // longest "lost" streak so far
+
+  // Per-day comm tracking
+  let dayOkH = 0;               // "ok"-link hours in the current calendar day
+  let worstDayOkH = 24;         // minimum daily ok-hours seen (worst day)
+  let commViolationDays = 0;    // days where daily ok-hours < commHoursReq
+
   const socArr: number[] = [];
 
   for (let k = 0; k < n; k++) {
     const h = wrapHour(k + p.delayH + extraDelayH);
 
-    // Battery: charge when sunlit, always drain the lander's load
-    if (s.lit[h]) lit++;
-    soc = Math.max(0, Math.min(p.batteryKwh, soc + (s.lit[h] ? panelKw : 0) - p.loadKw));
+    // ── Battery charging and consumption ──────────────────────────────────
+    const charge = s.lit[h] ? panelKw : 0;   // zero charge during shadow
+    const net = charge - p.loadKw;            // net energy this hour (kWh)
+    soc = Math.min(p.batteryKwh, soc + net);  // cap at full capacity
+    soc = Math.max(0, soc);                   // floor at zero (discharged)
     socArr.push(Math.round(soc * 10) / 10);
+    if (s.lit[h]) litH++;
     minSoc = Math.min(minSoc, soc);
+
+    // Power failure: first hour SoC drops below the safe reserve
     if (failHour === null && soc < reserve) {
       failHour = k;
       cause = "power";
     }
 
-    // Earth contact: count good hours per day, track the longest signal loss
+    // ── Earth-link / communication ────────────────────────────────────────
     const e = s.earth[h];
     if (e === "ok") {
-      ok++;
-      dayOk++;
+      earthOkH++;
+      dayOkH++;
     }
-    run = e === "lost" ? run + 1 : 0;
-    longest = Math.max(longest, run);
+    // Blackout = consecutive full signal-loss hours; "weak" resets the streak
+    blackoutRun = e === "lost" ? blackoutRun + 1 : 0;
+    longestBlackout = Math.max(longestBlackout, blackoutRun);
 
+    // ── End-of-day rule check (every 24 h) ───────────────────────────────
     if (k % 24 === 23) {
-      worstDay = Math.min(worstDay, dayOk);
-      if (failHour === null && dayOk < p.commHoursReq) {
-        failHour = k;
-        cause = "comm";
+      worstDayOkH = Math.min(worstDayOkH, dayOkH);
+
+      if (dayOkH < p.commHoursReq) {
+        commViolationDays++;
+        // Record the first comm-rule violation as the mission fail event
+        if (failHour === null) {
+          failHour = k;
+          cause = "comm";
+        }
       }
-      dayOk = 0;
+      dayOkH = 0; // reset for next day
     }
   }
 
+  // ── Verdict ───────────────────────────────────────────────────────────
+  // "warn" if battery came within 1.5× reserve OR any day had a comm shortfall
+  const powerAtRisk = minSoc < reserve * 1.5;
+  const commAtRisk  = worstDayOkH < p.commHoursReq + 2 || commViolationDays > 0;
   const verdict: Verdict =
-    failHour !== null ? "fail" : minSoc < reserve * 1.5 || worstDay < p.commHoursReq + 2 ? "warn" : "ok";
+    failHour !== null ? "fail" : powerAtRisk || commAtRisk ? "warn" : "ok";
 
   return {
     soc: socArr,
@@ -65,9 +93,9 @@ export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1): SimRe
     reserve,
     failHour,
     cause,
-    litPct: lit / n,
-    earthOkPct: ok / n,
-    longestBlackoutH: longest,
+    litPct: litH / n,
+    earthOkPct: earthOkH / n,
+    longestBlackoutH: longestBlackout,
     verdict,
   };
 }
