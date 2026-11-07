@@ -1,5 +1,6 @@
 // Shadow DNA: a site's fingerprint of light and Earth contact over one lunar month.
-import { HOURS, getSite } from "./sites";
+import { getSite } from "./sites";
+import type { EarthLink } from "./types";
 
 export type Dna = {
   litPct: number;
@@ -20,16 +21,22 @@ function longestRun(values: boolean[]) {
   return best;
 }
 
-export function siteDna(siteIdx: number): Dna {
-  const s = getSite(siteIdx);
+// DNA from any lit/earth arrays (sample or real)
+export function dnaFromArrays(lit: boolean[], earth: EarthLink[]): Dna {
+  const n = lit.length;
   let switches = 0;
-  for (let h = 1; h < HOURS; h++) if (s.lit[h] !== s.lit[h - 1]) switches++;
+  for (let h = 1; h < n; h++) if (lit[h] !== lit[h - 1]) switches++;
   return {
-    litPct: s.lit.filter(Boolean).length / HOURS,
-    commPct: s.earth.filter((e) => e === "ok").length / HOURS,
-    longestDayH: longestRun(s.lit),
-    longestNightH: longestRun(s.lit.map((v) => !v)),
-    longestBlackoutH: longestRun(s.earth.map((e) => e === "lost")),
+    litPct: lit.filter(Boolean).length / n,
+    commPct: earth.filter((e) => e === "ok").length / n,
+    longestDayH: longestRun(lit),
+    longestNightH: longestRun(lit.map((v) => !v)),
+    longestBlackoutH: longestRun(earth.map((e) => e === "lost")),
     switches,
   };
+}
+
+export function siteDna(siteIdx: number): Dna {
+  const s = getSite(siteIdx);
+  return dnaFromArrays(s.lit, s.earth);
 }

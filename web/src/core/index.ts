@@ -5,7 +5,8 @@ export { RESERVE_FRACTION, simulate, findBestSite, findSmallestDelay } from "./s
 export { MAX_SCENARIOS, PRESETS, customScenario, runScenario, type Scenario } from "./scenarios";
 export { useMission, useSim } from "./store";
 export { CALENDAR_DAYS, MAX_DELAY_H, PLANNED_LANDING, landingDate, landingLabel } from "./calendar";
-export { siteDna, type Dna } from "./dna";
+export { dnaFromArrays, siteDna, type Dna } from "./dna";
+export { DNA_HOURS, skyFromFile, useRealSky, type RealSky } from "./realSites";
 export { missionEvents, type MissionEvent } from "./events";
 export { parseQuestion, type AskResult } from "./ask";
 export {

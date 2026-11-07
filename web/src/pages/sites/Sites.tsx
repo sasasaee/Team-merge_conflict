@@ -1,13 +1,14 @@
 import { useMemo } from "react";
-import { HOURS, SITES, getSite, siteDna, useMission } from "@/core";
+import { DNA_HOURS, SITES, dnaFromArrays, getSite, useMission, useRealSky, type RealSky } from "@/core";
 import { colors } from "@/ui";
 
 const R_OUT = 70;
 const R_IN = 54;
 
 // Ring fingerprint: outer ring = sunlight over 28 days, inner ring = Earth contact
-function DnaRing({ siteIdx }: { siteIdx: number }) {
-  const s = getSite(siteIdx);
+function DnaRing({ siteIdx, sky }: { siteIdx: number; sky: RealSky }) {
+  const s = sky;
+  const HOURS = s.lit.length;
   const seg = (i: number, r: number, width: number, color: string) => {
     const a0 = (i / HOURS) * Math.PI * 2 - Math.PI / 2;
     const a1 = ((i + 1.2) / HOURS) * Math.PI * 2 - Math.PI / 2;
@@ -33,7 +34,19 @@ function DnaRing({ siteIdx }: { siteIdx: number }) {
 
 export function Sites() {
   const setParam = useMission((s) => s.setParam);
-  const cards = useMemo(() => SITES.map((site, i) => ({ site, i, dna: siteDna(i) })), []);
+  const real = useRealSky(); // null while loading; a null entry = no file, fall back to sample data
+  const cards = useMemo(
+    () =>
+      real
+        ? SITES.map((site, i) => {
+            const sky = real[i];
+            const sample = sky ? null : getSite(i);
+            const use: RealSky = sky ?? { lit: sample!.lit.slice(0, DNA_HOURS), earth: sample!.earth.slice(0, DNA_HOURS) };
+            return { site, i, sky: use, isReal: !!sky, dna: dnaFromArrays(use.lit, use.earth) };
+          })
+        : [],
+    [real],
+  );
   const pct = (x: number) => `${Math.round(x * 100)}%`;
 
   return (
@@ -45,11 +58,13 @@ export function Sites() {
           ring is contact with Earth (blue good, orange weak, red lost).
         </p>
 
+        {!real && <p className="mt-8 text-muted">Loading site data…</p>}
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map(({ site, i, dna }) => (
+          {cards.map(({ site, i, dna, sky, isReal }) => (
             <article key={site.id} className="rounded-3xl border border-line bg-gradient-to-b from-surface to-bg p-5">
-              <DnaRing siteIdx={i} />
+              <DnaRing siteIdx={i} sky={sky} />
               <h2 className="mt-3 text-center text-xl font-bold">{site.name}</h2>
+              {!isReal && <p className="text-center text-xs text-muted">sample data (no real file found)</p>}
               <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <dt className="text-muted">Sunlit</dt>
                 <dd className="num text-right text-sun">{pct(dna.litPct)}</dd>
