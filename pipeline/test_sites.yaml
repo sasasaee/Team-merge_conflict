@@ -1,0 +1,2 @@
+   sites:
+     - {id: test-site, name: Test Site, lat: -88.0, lon: 0.0}

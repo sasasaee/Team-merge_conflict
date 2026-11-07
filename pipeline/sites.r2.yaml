@@ -1,0 +1,23 @@
+# R2's own site list (so Humaira is not blocked on Atia's sites.yaml / T-16).
+# Same 5 ids and names as web/src/core/sites.ts. lat is negative (south), lon is EAST-positive (west = negative).
+# Each Artemis III region is only ~15 x 15 km, so these are region-level points, not exact landing spots.
+# Replace any line with Moon Trek (https://trek.nasa.gov/moon/) or Atia's numbers when you have them.
+sites:
+  # Mons Malapert massif: centre of a proposed landing ellipse on the massif top
+  # (Krasilnikov et al., 10th Moscow Solar System Symposium 2019: 86 deg 0'9" S, 2 deg 59'34" E). Good confidence.
+  - {id: malapert, name: Malapert Massif, lat: -86.00, lon: 2.99}
+
+  # Mons Mouton: NASA SVS lists it at about 84 S, 37 E (highlands next to Nobile's rim). Region-level only.
+  - {id: mons-mouton, name: Mons Mouton, lat: -84.0, lon: 37.0}
+
+  # Nobile Rim 1: west rim of Nobile crater. Crater centre 85.28 S, 53.27 E, diameter ~79 km,
+  # so the west rim is ~40 km west, about lon 37-38 E. LOW confidence, check in Moon Trek.
+  - {id: nobile-rim-1, name: Nobile Rim 1, lat: -85.3, lon: 38.0}
+
+  # Haworth: crater centre about 86.9 S, 4 W (lon 356). That is the crater FLOOR (deep shadow).
+  # The Artemis region sits on the rim, so expect a high horizon here. LOW confidence, check in Moon Trek.
+  - {id: haworth, name: Haworth, lat: -86.9, lon: -4.0}
+
+  # de Gerlache Rim 2: a landing point inside region SL2 from Table 3 of Pena-Asensio et al. 2025
+  # (Acta Astronautica 226): 88 deg 30'56.38" S, 61 deg 10'2.35" W. Good confidence.
+  - {id: de-gerlache-rim-2, name: de Gerlache Rim 2, lat: -88.5157, lon: -61.1673}

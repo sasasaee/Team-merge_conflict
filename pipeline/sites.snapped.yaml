@@ -1,0 +1,7 @@
+# Output of snap_sites.py: each point moved to the best nearby spot (see script docstring).
+sites:
+  - {id: malapert, name: Malapert Massif, lat: -85.9090, lon: 3.4782}
+  - {id: mons-mouton, name: Mons Mouton, lat: -84.1394, lon: 35.9787}
+  - {id: nobile-rim-1, name: Nobile Rim 1, lat: -85.1863, lon: 36.6551}
+  - {id: haworth, name: Haworth, lat: -86.8623, lon: -18.2218}
+  - {id: de-gerlache-rim-2, name: de Gerlache Rim 2, lat: -88.5654, lon: -67.9854}

@@ -1,0 +1,7 @@
+numpy
+numba
+rasterio
+pyproj
+pyyaml
+pytest
+matplotlib

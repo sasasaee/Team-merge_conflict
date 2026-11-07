@@ -1,0 +1,3 @@
+# Output of snap_sites.py: each point moved to the best nearby spot (see script docstring).
+sites:
+  - {id: haworth, name: Haworth, lat: -86.8623, lon: -18.2218}

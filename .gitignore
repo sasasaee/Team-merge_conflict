@@ -12,3 +12,10 @@ pipeline/kernels/
 pipeline/dem/
 __pycache__/
 .venv/
+.venv/
+/data/
+pipeline/cache/
+pipeline/out/
+pipeline/demo_out/
+__pycache__/
+.pytest_cache/
