@@ -1,0 +1,74 @@
+# MoonScope Artemis III Candidate Landing Sites Configuration
+# Coordinate Conventions:
+#   - Latitude: Planetocentric, degrees [-90, +90], South is negative.
+#   - Longitude: East-positive, degrees [0, 360), measured eastward from Moon Prime Meridian (0 deg).
+#   - Lunar Reference Frame: MOON_ME (Mean Earth / Polar Axis frame, DE440 realization).
+#   - Reference Radius: 1737.4 km (1,737,400 m) as per IAU/NAIF pck00011.tpc.
+#
+# Primary Sources:
+#   1. NASA Artemis III Candidate Landing Regions Announcement (Oct 2024 update / Aug 2022 list):
+#      https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-artemis-iii-lunar-landing/
+#   2. NASA Lunar Reconnaissance Orbiter (LRO) LOLA Science Team South Pole Cartographic Data.
+#   3. Lunar and Planetary Institute (LPI) Artemis Landing Site Studies (USRA/LPI).
+#
+# Note on Snapped Coordinates:
+#   Humaira's pipeline (R2) snaps candidate coordinates to LOLA DEM grid pixels.
+#   Because Humaira's R2 files (sites.snapped.yaml) are currently external to this branch,
+#   the coordinates below reflect the official NASA region reference points.
+#   When R2 snapped coordinates are finalized, these entries must be kept strictly synchronized.
+
+sites:
+  - id: malapert
+    name: Malapert Massif
+    lat: -85.99
+    lon: 359.70
+    source: NASA Artemis III Candidate Region centroid (85.99 S, 0.30 W / 359.70 E)
+
+  - id: mons-mouton
+    name: Mons Mouton
+    lat: -84.60
+    lon: 31.00
+    source: NASA Artemis III Candidate Region centroid (84.60 S, 31.00 E)
+
+  - id: mons-mouton-plateau
+    name: Mons Mouton Plateau
+    lat: -84.30
+    lon: 30.60
+    source: NASA Artemis III Candidate Region / LRO LOLA plateau reference (84.30 S, 30.60 E)
+
+  - id: nobile-rim-1
+    name: Nobile Rim 1
+    lat: -85.40
+    lon: 37.40
+    source: NASA Artemis III Candidate Region centroid (85.40 S, 37.40 E)
+
+  - id: nobile-rim-2
+    name: Nobile Rim 2
+    lat: -83.90
+    lon: 58.70
+    source: NASA Artemis III Candidate Region centroid (83.90 S, 58.70 E)
+
+  - id: haworth
+    name: Haworth
+    lat: -86.80
+    lon: 337.20
+    source: NASA Artemis III Candidate Region centroid (86.80 S, 22.80 W / 337.20 E)
+
+  - id: de-gerlache-rim-2
+    name: de Gerlache Rim 2
+    lat: -88.20
+    lon: 296.60
+    source: NASA Artemis III Candidate Region centroid (88.20 S, 63.40 W / 296.60 E)
+
+  - id: peak-near-cabeus-b
+    name: Peak near Cabeus B
+    lat: -85.40
+    lon: 291.00
+    source: NASA Artemis III Candidate Region / Cabeus ridge high ground (85.40 S, 69.00 W / 291.00 E)
+
+  - id: slater-plain
+    name: Slater Plain
+    lat: -88.08
+    lon: 111.29
+    source: NASA Artemis III Candidate Region / Slater crater northern plain (88.08 S, 111.29 E)
+
