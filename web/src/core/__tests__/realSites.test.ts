@@ -55,6 +55,7 @@ describe.skipIf(!have)("real site data", () => {
     expect(s.sunEl.slice(0, 240).some((v, k) => v !== s.sunEl[672 + k])).toBe(true);
     expect(s.earthEl.slice(0, 240).some((v, k) => v !== s.earthEl[672 + k])).toBe(true);
   });
+
   it("DNA uses the first 28 days and matches the file", () => {
     const d = siteDna(0);
     const s = getSite(0);

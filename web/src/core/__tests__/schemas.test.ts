@@ -22,7 +22,7 @@ describe("MissionParamsSchema", () => {
   });
 
   it("rejects siteIdx out of range", () => {
-    expect(() => MissionParamsSchema.parse({ ...MOCK_PARAMS, siteIdx: 5 })).toThrow();
+    expect(() => MissionParamsSchema.parse({ ...MOCK_PARAMS, siteIdx: 9 })).toThrow();
     expect(() => MissionParamsSchema.parse({ ...MOCK_PARAMS, siteIdx: -1 })).toThrow();
   });
 
@@ -103,8 +103,8 @@ describe("SimResultSchema", () => {
 //SiteData
 
 describe("SiteDataSchema", () => {
-  it("validates all 5 generated mock sites", () => {
-    for (let i = 0; i < 5; i++) {
+  it("validates all 9 generated mock sites", () => {
+    for (let i = 0; i < 9; i++) {
       const site = getSite(i);
       expect(() => SiteDataSchema.parse(site)).not.toThrow();
     }
@@ -130,7 +130,7 @@ describe("simulate() output passes SimResultSchema", () => {
   });
 
   it("every site produces a valid result", () => {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 9; i++) {
       const result = simulate({ ...MOCK_PARAMS, siteIdx: i });
       expect(() => SimResultSchema.parse(result)).not.toThrow();
     }

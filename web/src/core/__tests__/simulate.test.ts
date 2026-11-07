@@ -151,9 +151,9 @@ describe("Earth comm and rule violations (T-33)", () => {
     expect(r.earthOkPct).toBeLessThanOrEqual(1);
   });
 
-  it("all 5 sites produce a valid verdict", () => {
+  it("all 9 sites produce a valid verdict", () => {
     const verdicts = new Set(["ok", "warn", "fail"]);
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 9; i++) {
       const r = simulate({ ...base, siteIdx: i });
       expect(verdicts.has(r.verdict)).toBe(true);
     }

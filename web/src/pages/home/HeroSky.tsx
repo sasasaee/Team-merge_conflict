@@ -186,7 +186,7 @@ export function HeroSky() {
                   style={{ width: `${Math.max(0, socPct) * 100}%` }}
                 />
               </div>
-              <p className="mt-3 text-[11px] text-muted">Heights exaggerated. Sample data until the NASA files land.</p>
+              <p className="mt-3 text-[11px] text-muted">Heights exaggerated. Based on NASA LOLA terrain data.</p>
             </div>
           </div>
         </div>

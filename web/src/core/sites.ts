@@ -12,6 +12,10 @@ export const SITES = [
   { id: "nobile-rim-1", name: "Nobile Rim 1" },
   { id: "haworth", name: "Haworth" },
   { id: "de-gerlache-rim-2", name: "de Gerlache Rim 2" },
+  { id: "mons-mouton-plateau", name: "Mons Mouton Plateau" },
+  { id: "nobile-rim-2", name: "Nobile Rim 2" },
+  { id: "peak-near-cabeus-b", name: "Peak near Cabeus B" },
+  { id: "slater-plain", name: "Slater Plain" },
 ] as const;
 
 const PROFILES = [
@@ -57,7 +61,7 @@ export function getSite(i: number): SiteData {
   const hit = cache.get(i);
   if (hit) return hit;
 
-  const p = PROFILES[i];
+  const p = PROFILES[i % PROFILES.length]; // sample data only (used when the real files are missing)
   const horizon = Array.from(
     { length: 360 },
     (_, a) => p.hBase + p.hAmp * Math.abs(Math.sin((a + i * 37) * 2 * RAD)) + 0.5 * Math.sin((a * 5 + i * 23) * RAD) ** 2,

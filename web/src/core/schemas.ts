@@ -23,7 +23,7 @@ export const SiteDataSchema = z.object({
 //  MissionParams 
 
 export const MissionParamsSchema = z.object({
-  siteIdx: z.number().int().min(0).max(4),
+  siteIdx: z.number().int().min(0).max(8), // 9 sites
   delayH: z.number().int().min(-240).max(240),
   batteryKwh: z.number().min(40).max(200),
   loadKw: z.number().min(0.5).max(4),
