@@ -11,6 +11,8 @@ export type Scenario = {
   effScale: number;  // 0.8 = panels 20% weaker
   commScale: number; // 2 = need twice the daily Earth contact
   loadScale: number; // 1.5 = lander uses 50% more power
+  moveEastKm?: number;  // move the lander this far east (negative = west), whole km -2..2. Real data only.
+  moveNorthKm?: number; // move the lander this far north (negative = south), whole km -2..2. Real data only.
 };
 
 const base = { delayH: 0, effScale: 1, commScale: 1, loadScale: 1 };
@@ -22,6 +24,7 @@ export const PRESETS: Scenario[] = [
   { ...base, id: "panels",  label: "Panels 20% weaker",    effScale: 0.8 },
   { ...base, id: "contact", label: "Need 2x contact time", commScale: 2 },
   { ...base, id: "power",   label: "Use 50% more power",   loadScale: 1.5 },
+  { ...base, id: "east2",   label: "Move 2 km east",       moveEastKm: 2 },
 ];
 
 /**
@@ -34,6 +37,8 @@ export function customScenario(
   panelPct: number,
   commScale: number,
   loadScale = 1,
+  moveEastKm = 0,
+  moveNorthKm = 0,
 ): Scenario {
   const parts: string[] = [];
   const d = Math.abs(delayDays);
@@ -41,16 +46,20 @@ export function customScenario(
   if (panelPct !== 100) parts.push(`panels ${panelPct}%`);
   if (commScale !== 1) parts.push(`${commScale}x contact`);
   if (loadScale !== 1) parts.push(`${loadScale}x power draw`);
+  if (moveEastKm !== 0) parts.push(`move ${Math.abs(moveEastKm)} km ${moveEastKm > 0 ? "east" : "west"}`);
+  if (moveNorthKm !== 0) parts.push(`move ${Math.abs(moveNorthKm)} km ${moveNorthKm > 0 ? "north" : "south"}`);
   const text = parts.join(", ");
   const label = text ? text[0].toUpperCase() + text.slice(1) : "Same as plan";
   return {
     ...base,
-    id: `custom:${delayDays}:${panelPct}:${commScale}:${loadScale}`,
+    id: `custom:${delayDays}:${panelPct}:${commScale}:${loadScale}${moveEastKm || moveNorthKm ? `:e${moveEastKm}n${moveNorthKm}` : ""}`,
     label,
     delayH: delayDays * 24,
     effScale: panelPct / 100,
     commScale,
     loadScale,
+    moveEastKm,
+    moveNorthKm,
   };
 }
 
@@ -70,5 +79,9 @@ export function runScenario(p: MissionParams, sc: Scenario): SimResult {
     commHoursReq: Math.max(0, Math.min(24, Math.round(p.commHoursReq * commScale))),
     loadKw: Math.max(0.1, p.loadKw * loadScale),
   };
-  return simulate(changed, delayH, effScale);
+  // Moving uses the pipeline's grid of nearby points (whole km, at most 2 km each way)
+  const gridKm = (v: number | undefined) => (Number.isFinite(v) ? Math.max(-2, Math.min(2, Math.round(v as number))) : 0);
+  const dxKm = gridKm(sc.moveEastKm);
+  const dyKm = gridKm(sc.moveNorthKm);
+  return simulate(changed, delayH, effScale, dxKm !== 0 || dyKm !== 0 ? { dxKm, dyKm } : undefined);
 }

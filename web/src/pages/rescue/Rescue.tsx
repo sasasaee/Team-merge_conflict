@@ -4,6 +4,7 @@ import { Pause, Play, RotateCcw } from "lucide-react";
 import {
   CRISES,
   MOVES,
+  RESCUE_HARDWARE,
   RESCUE_HOURS,
   SITES,
   applyMove,
@@ -182,7 +183,7 @@ export function Rescue() {
 
   return (
     <div className="mx-auto max-w-[1300px] px-5 pb-12 lg:px-8">
-      {game ? <Game game={game} setGame={setGame} /> : <Intro onStart={(c) => setGame(startRescue(c, params))} />}
+      {game ? <Game game={game} setGame={setGame} /> : <Intro onStart={(c) => setGame(startRescue(c, { ...params, ...RESCUE_HARDWARE }))} />}
     </div>
   );
 }

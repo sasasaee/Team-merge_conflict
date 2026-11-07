@@ -1,13 +1,14 @@
 // R3 – Mission Simulator Logic. UI reads from these pure functions; no React imports here.
-import { HOURS, SITES, getSite, wrapHour } from "./sites";
+import { HOURS, SITES, getSite, getSiteAt, wrapHour } from "./sites";
 import type { Cause, MissionParams, SimResult, Verdict } from "./types";
 
 const PANEL_AREA_M2 = 10;        // m²  — fixed hardware constant
 const SUN_KW_PER_M2 = 1.361;     // kW/m² solar constant at the Moon
 export const RESERVE_FRACTION = 0.25; // below 25 % of capacity = power failure
 
-export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1): SimResult {
-  const s = getSite(p.siteIdx);
+// `offset` moves the lander to a nearby grid point (km east / km north). Real data only; without it the site itself is used.
+export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1, offset?: { dxKm: number; dyKm: number }): SimResult {
+  const s = offset ? getSiteAt(p.siteIdx, offset.dxKm, offset.dyKm) : getSite(p.siteIdx);
   const n = Math.min(p.durationDays * 24, HOURS);
 
   // Gross solar power (kW) the panels can deliver when fully illuminated

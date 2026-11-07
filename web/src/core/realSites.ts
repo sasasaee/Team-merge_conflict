@@ -22,18 +22,30 @@ export function siteDataFromFile(f: SiteFile): SiteData | null {
   const n = Math.min(f.sun_az.length, f.sun_el.length, f.earth_az.length, f.earth_el.length);
   if (n < MIN_REAL_HOURS) return null;
 
-  const horizon = centre.horizon;
-  const ridge = (az: number) => horizon[Math.round(az) % 360];
-  const d: SiteData = { horizon, sunAz: [], sunEl: [], earthAz: [], earthEl: [], lit: [], earth: [] };
-  for (let h = 0; h < n; h++) {
-    d.sunAz.push(f.sun_az[h]);
-    d.sunEl.push(f.sun_el[h]);
-    d.earthAz.push(f.earth_az[h]);
-    d.earthEl.push(f.earth_el[h]);
-    d.lit.push(f.sun_el[h] > ridge(f.sun_az[h]));
-    const margin = f.earth_el[h] - ridge(f.earth_az[h]);
-    const link: EarthLink = margin > RELIABLE_DEG ? "ok" : margin > 0 ? "weak" : "lost";
-    d.earth.push(link);
-  }
+  const raw: SiteData = {
+    horizon: centre.horizon,
+    sunAz: f.sun_az.slice(0, n),
+    sunEl: f.sun_el.slice(0, n),
+    earthAz: f.earth_az.slice(0, n),
+    earthEl: f.earth_el.slice(0, n),
+    lit: [],
+    earth: [],
+  };
+  const d = withHorizon(raw, centre.horizon);
+  d.grid = f.grid!.map((g) => ({ dxKm: g.dx_km, dyKm: g.dy_km, horizon: g.horizon }));
   return SiteDataSchema.safeParse(d).success ? d : null;
+}
+
+// Same Sun and Earth positions, different mountains: rebuilds the lit and Earth-link arrays for another horizon.
+// Used for the real site (centre horizon) and for the "Move N km" what-ifs (a nearby grid point).
+export function withHorizon(base: SiteData, horizon: number[]): SiteData {
+  const ridge = (az: number) => horizon[Math.round(az) % 360];
+  const lit: boolean[] = [];
+  const earth: EarthLink[] = [];
+  for (let h = 0; h < base.sunAz.length; h++) {
+    lit.push(base.sunEl[h] > ridge(base.sunAz[h]));
+    const margin = base.earthEl[h] - ridge(base.earthAz[h]);
+    earth.push(margin > RELIABLE_DEG ? "ok" : margin > 0 ? "weak" : "lost");
+  }
+  return { ...base, horizon, grid: undefined, lit, earth };
 }

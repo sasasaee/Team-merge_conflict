@@ -1,9 +1,9 @@
 // Site data. Real NASA-based JSON (web/public/data/<id>.json) when all sites load, otherwise the sample data below.
-import { siteDataFromFile } from "./realSites";
+import { siteDataFromFile, withHorizon } from "./realSites";
 import type { SiteData } from "./types";
 
 // Number of hours the site arrays hold: 672 (28 days) for the sample data, the length of the real files otherwise
-// (74 days = 60 days of possible delay + 14 mission days). Set by loadRealSites() before the app renders.
+// (8,760 h = one year from the planned landing). Set by loadRealSites() before the app renders.
 export let HOURS = 24 * 28;
 
 export const SITES = [
@@ -28,6 +28,7 @@ const PROFILES = [
 
 const RAD = Math.PI / 180;
 const cache = new Map<number, SiteData>();
+const moved = new Map<string, SiteData>();
 let real: SiteData[] | null = null;
 
 export const usingRealData = () => real !== null;
@@ -45,6 +46,7 @@ export async function loadRealSites(baseUrl = "/"): Promise<boolean> {
     real = all as SiteData[];
     HOURS = Math.min(...real.map((x) => x.lit.length));
     cache.clear();
+    moved.clear();
     return true;
   } catch (e) {
     console.warn("Real site data not loaded, using sample data:", e);
@@ -52,6 +54,22 @@ export async function loadRealSites(baseUrl = "/"): Promise<boolean> {
     HOURS = 24 * 28;
     return false;
   }
+}
+
+// The site as seen from a point dxKm east and dyKm north of it (whole km, -2..2). Real data only: the pipeline stores a
+// 5x5 grid of horizons per site. Without a grid, or for a point that is not on it, this is the site itself.
+export function getSiteAt(i: number, dxKm = 0, dyKm = 0): SiteData {
+  const base = getSite(i);
+  if ((dxKm === 0 && dyKm === 0) || !base.grid) return base;
+  const point = base.grid.find((g) => g.dxKm === dxKm && g.dyKm === dyKm);
+  if (!point) return base;
+  const key = `${i}:${dxKm}:${dyKm}`;
+  let hit = moved.get(key);
+  if (!hit) {
+    hit = withHorizon(base, point.horizon);
+    moved.set(key, hit);
+  }
+  return hit;
 }
 
 export const wrapHour = (h: number) => ((h % HOURS) + HOURS) % HOURS;

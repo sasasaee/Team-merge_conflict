@@ -11,9 +11,11 @@ export function WhatIf() {
   const [delayDays, setDelayDays] = useState(2);
   const [panelPct, setPanelPct] = useState(100);
   const [commScale, setCommScale] = useState("1");
+  const [moveEast, setMoveEast] = useState(0);
+  const [moveNorth, setMoveNorth] = useState(0);
 
   const full = scenarios.length >= MAX_SCENARIOS;
-  const custom = customScenario(delayDays, panelPct, Number(commScale));
+  const custom = customScenario(delayDays, panelPct, Number(commScale), 1, moveEast, moveNorth);
   const has = (id: string) => scenarios.some((x) => x.id === id);
 
   return (
@@ -78,6 +80,22 @@ export function WhatIf() {
             { value: "3", label: "3x" },
           ]}
           onChange={setCommScale}
+        />
+        <Slider
+          label="Move east / west"
+          value={moveEast}
+          min={-2}
+          max={2}
+          display={moveEast === 0 ? "No move" : `${Math.abs(moveEast)} km ${moveEast > 0 ? "east" : "west"}`}
+          onChange={setMoveEast}
+        />
+        <Slider
+          label="Move north / south"
+          value={moveNorth}
+          min={-2}
+          max={2}
+          display={moveNorth === 0 ? "No move" : `${Math.abs(moveNorth)} km ${moveNorth > 0 ? "north" : "south"}`}
+          onChange={setMoveNorth}
         />
         <Button size="sm" className="w-full" disabled={full || has(custom.id)} onClick={() => addScenario(custom)}>
           <Plus size={12} /> Add &quot;{custom.label}&quot;

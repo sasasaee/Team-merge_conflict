@@ -36,6 +36,7 @@ export function HeroSky() {
   const params = useMission((s) => s.params);
   const setParam = useMission((s) => s.setParam);
   const [hour, setHour] = useState(0);
+  const loopH = Math.min(HOURS, 24 * 28); // the hero shows one lunar month, even though the real files hold a year
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
 
   const site = getSite(siteIdx);
@@ -47,9 +48,9 @@ export function HeroSky() {
 
   useEffect(() => {
     if (!playing) return;
-    const id = window.setInterval(() => setHour((h) => (h + 1) % HOURS), TICK_MS);
+    const id = window.setInterval(() => setHour((h) => (h + 1) % loopH), TICK_MS);
     return () => window.clearInterval(id);
-  }, [playing]);
+  }, [playing, loopH]);
 
   const lit = site.lit[hour];
   const link = LINK[site.earth[hour]];
@@ -58,7 +59,7 @@ export function HeroSky() {
   const margin = site.sunEl[hour] - site.horizon[Math.round(site.sunAz[hour]) % 360];
   const soc = month.soc[hour] ?? 0;
   const socPct = soc / params.batteryKwh;
-  const trail = Array.from({ length: 48 }, (_, k) => (hour - 47 + k + HOURS) % HOURS);
+  const trail = Array.from({ length: 48 }, (_, k) => (hour - 47 + k + loopH) % loopH);
 
   return (
     <div className="relative">

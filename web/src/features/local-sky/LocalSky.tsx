@@ -1,12 +1,13 @@
 import { getSite, useMission, wrapHour } from "@/core";
 import { colors } from "@/ui";
 
-// Round sky map: centre = straight up, edge = 2 degrees below the horizon
+// Round sky map of the low sky: centre = 14 degrees up, edge = 8 degrees below the horizon level.
+// Real horizons run from about -8 to +12 degrees, so heights outside this range are clamped to the centre or the rim.
 const SIZE = 300;
 const C = SIZE / 2;
 const R = 130;
-const EL_MAX = 10;
-const EL_MIN = -2;
+const EL_MAX = 14;
+const EL_MIN = -8;
 const RAD = Math.PI / 180;
 const COMPASS: [string, number][] = [["N", 0], ["E", 90], ["S", 180], ["W", 270]];
 
@@ -39,7 +40,7 @@ export function LocalSky() {
           </radialGradient>
         </defs>
         <circle cx={C} cy={C} r={R} fill="url(#sky)" stroke={colors.line} />
-        {[0, 4, 8].map((el) => (
+        {[0, 4, 8, 12].map((el) => (
           <g key={el}>
             <circle cx={C} cy={C} r={radius(el)} fill="none" stroke={colors.line} strokeDasharray="2 4" />
             <text x={C + 3} y={C - radius(el) - 3} fontSize={9} fill={colors.muted}>{el}°</text>

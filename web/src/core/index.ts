@@ -1,7 +1,7 @@
 // Mission core: data, simulator and shared state. Features and pages import from "@/core" only.
 export { MissionParamsSchema, SimResultSchema, SiteDataSchema, MOCK_PARAMS, MOCK_PARAMS_RISKY, MOCK_SIM_RESULT } from "./schemas";
 export * from "./types";
-export { HOURS, SITES, getSite, loadRealSites, usingRealData, wrapHour } from "./sites";
+export { HOURS, SITES, getSite, getSiteAt, loadRealSites, usingRealData, wrapHour } from "./sites";
 export { DNA_HOURS, siteDataFromFile } from "./realSites";
 export { RESERVE_FRACTION, simulate, findBestSite, findSmallestDelay } from "./simulate";
 export { MAX_SCENARIOS, PRESETS, customScenario, runScenario, type Scenario } from "./scenarios";
@@ -30,6 +30,7 @@ export {
 export {
   CRISES,
   MOVES,
+  RESCUE_HARDWARE,
   RESCUE_HOURS,
   applyMove,
   canMove,

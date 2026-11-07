@@ -3,6 +3,8 @@ import { getSite, wrapHour } from "./sites";
 import type { MissionParams } from "./types";
 
 export const RESCUE_HOURS = 72;
+// The game's lander is fixed hardware, so changing the planner's battery or power settings cannot make the game trivial.
+export const RESCUE_HARDWARE = { batteryKwh: 120, loadKw: 1.8, panelEff: 0.29 } as const;
 const PANEL_KW = 10 * 1.361;
 
 export type Crisis = { id: string; title: string; story: string; effScale: number; extraLoadKw: number; delayH: number };
