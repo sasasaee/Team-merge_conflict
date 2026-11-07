@@ -1,14 +1,15 @@
 import { useMemo } from "react";
-import { DNA_HOURS, SITES, dnaFromArrays, getSite, useMission, useRealSky, type RealSky } from "@/core";
+import { DNA_HOURS, SITES, getSite, siteDna, useMission, usingRealData } from "@/core";
 import { colors } from "@/ui";
 
 const R_OUT = 70;
 const R_IN = 54;
 
 // Ring fingerprint: outer ring = sunlight over 28 days, inner ring = Earth contact
-function DnaRing({ siteIdx, sky }: { siteIdx: number; sky: RealSky }) {
-  const s = sky;
-  const HOURS = s.lit.length;
+function DnaRing({ siteIdx }: { siteIdx: number }) {
+  const full = getSite(siteIdx);
+  const HOURS = DNA_HOURS; // ring = first 28 days after landing
+  const s = { lit: full.lit.slice(0, HOURS), earth: full.earth.slice(0, HOURS) };
   const seg = (i: number, r: number, width: number, color: string) => {
     const a0 = (i / HOURS) * Math.PI * 2 - Math.PI / 2;
     const a1 = ((i + 1.2) / HOURS) * Math.PI * 2 - Math.PI / 2;
@@ -34,19 +35,7 @@ function DnaRing({ siteIdx, sky }: { siteIdx: number; sky: RealSky }) {
 
 export function Sites() {
   const setParam = useMission((s) => s.setParam);
-  const real = useRealSky(); // null while loading; a null entry = no file, fall back to sample data
-  const cards = useMemo(
-    () =>
-      real
-        ? SITES.map((site, i) => {
-            const sky = real[i];
-            const sample = sky ? null : getSite(i);
-            const use: RealSky = sky ?? { lit: sample!.lit.slice(0, DNA_HOURS), earth: sample!.earth.slice(0, DNA_HOURS) };
-            return { site, i, sky: use, isReal: !!sky, dna: dnaFromArrays(use.lit, use.earth) };
-          })
-        : [],
-    [real],
-  );
+  const cards = useMemo(() => SITES.map((site, i) => ({ site, i, dna: siteDna(i) })), []);
   const pct = (x: number) => `${Math.round(x * 100)}%`;
 
   return (
@@ -58,13 +47,12 @@ export function Sites() {
           ring is contact with Earth (blue good, orange weak, red lost).
         </p>
 
-        {!real && <p className="mt-8 text-muted">Loading site data…</p>}
+        {!usingRealData() && <p className="mt-4 text-sm text-muted">Showing sample data (real site files not found).</p>}
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map(({ site, i, dna, sky, isReal }) => (
+          {cards.map(({ site, i, dna }) => (
             <article key={site.id} className="rounded-3xl border border-line bg-gradient-to-b from-surface to-bg p-5">
-              <DnaRing siteIdx={i} sky={sky} />
+              <DnaRing siteIdx={i} />
               <h2 className="mt-3 text-center text-xl font-bold">{site.name}</h2>
-              {!isReal && <p className="text-center text-xs text-muted">sample data (no real file found)</p>}
               <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <dt className="text-muted">Sunlit</dt>
                 <dd className="num text-right text-sun">{pct(dna.litPct)}</dd>

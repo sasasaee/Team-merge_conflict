@@ -1,7 +1,10 @@
-// SAMPLE DATA FOR DESIGN ONLY. R1 and R2 replace getSite() with real NASA-based JSON.
+// Site data. Real NASA-based JSON (web/public/data/<id>.json) when all sites load, otherwise the sample data below.
+import { siteDataFromFile } from "./realSites";
 import type { SiteData } from "./types";
 
-export const HOURS = 24 * 28;
+// Number of hours the site arrays hold: 672 (28 days) for the sample data, the length of the real files otherwise
+// (74 days = 60 days of possible delay + 14 mission days). Set by loadRealSites() before the app renders.
+export let HOURS = 24 * 28;
 
 export const SITES = [
   { id: "malapert", name: "Malapert Massif" },
@@ -21,10 +24,36 @@ const PROFILES = [
 
 const RAD = Math.PI / 180;
 const cache = new Map<number, SiteData>();
+let real: SiteData[] | null = null;
+
+export const usingRealData = () => real !== null;
+
+// Call once before rendering. All-or-nothing: if any site file is missing or invalid, every site keeps the sample data.
+export async function loadRealSites(baseUrl = "/"): Promise<boolean> {
+  try {
+    const all = await Promise.all(
+      SITES.map(async (s) => {
+        const r = await fetch(`${baseUrl}data/${s.id}.json`);
+        return r.ok ? siteDataFromFile(await r.json()) : null;
+      }),
+    );
+    if (all.some((x) => x === null)) throw new Error("a site file is missing or invalid");
+    real = all as SiteData[];
+    HOURS = Math.min(...real.map((x) => x.lit.length));
+    cache.clear();
+    return true;
+  } catch (e) {
+    console.warn("Real site data not loaded, using sample data:", e);
+    real = null;
+    HOURS = 24 * 28;
+    return false;
+  }
+}
 
 export const wrapHour = (h: number) => ((h % HOURS) + HOURS) % HOURS;
 
 export function getSite(i: number): SiteData {
+  if (real) return real[i];
   const hit = cache.get(i);
   if (hit) return hit;
 

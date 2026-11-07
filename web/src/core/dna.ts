@@ -1,6 +1,6 @@
 // Shadow DNA: a site's fingerprint of light and Earth contact over one lunar month.
+import { DNA_HOURS } from "./realSites";
 import { getSite } from "./sites";
-import type { EarthLink } from "./types";
 
 export type Dna = {
   litPct: number;
@@ -21,8 +21,11 @@ function longestRun(values: boolean[]) {
   return best;
 }
 
-// DNA from any lit/earth arrays (sample or real)
-export function dnaFromArrays(lit: boolean[], earth: EarthLink[]): Dna {
+export function siteDna(siteIdx: number): Dna {
+  const s = getSite(siteIdx);
+  // Shadow DNA covers the first 28 days after landing (same window as the pipeline's dna)
+  const lit = s.lit.slice(0, DNA_HOURS);
+  const earth = s.earth.slice(0, DNA_HOURS);
   const n = lit.length;
   let switches = 0;
   for (let h = 1; h < n; h++) if (lit[h] !== lit[h - 1]) switches++;
@@ -34,9 +37,4 @@ export function dnaFromArrays(lit: boolean[], earth: EarthLink[]): Dna {
     longestBlackoutH: longestRun(earth.map((e) => e === "lost")),
     switches,
   };
-}
-
-export function siteDna(siteIdx: number): Dna {
-  const s = getSite(siteIdx);
-  return dnaFromArrays(s.lit, s.earth);
 }

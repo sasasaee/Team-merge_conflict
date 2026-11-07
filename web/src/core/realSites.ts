@@ -1,12 +1,13 @@
-// Real NASA-based sky for each site (R2 pipeline output): web/public/data/<id>.json
-import { useEffect, useState } from "react";
-import type { EarthLink } from "./types";
-import { SITES } from "./sites";
+// Real NASA-based site data (R2 pipeline output): web/public/data/<id>.json -> SiteData.
+// Pure logic, no React. Rules are the same as pipeline/illumination.py.
+import { SiteDataSchema } from "./schemas";
+import type { EarthLink, SiteData } from "./types";
 
-export const DNA_HOURS = 24 * 28; // first lunar month after landing, same window as the pipeline's dna
+export const DNA_HOURS = 24 * 28; // Shadow DNA window: first lunar month after landing (same as the pipeline's dna)
+export const MIN_REAL_HOURS = DNA_HOURS; // a real file shorter than this is rejected
 const RELIABLE_DEG = 2.5; // Earth must be this far above the ridge for a reliable link
 
-type SiteFile = {
+export type SiteFile = {
   grid?: { dx_km: number; dy_km: number; horizon: number[] }[];
   sun_az?: number[];
   sun_el?: number[];
@@ -14,40 +15,25 @@ type SiteFile = {
   earth_el?: number[];
 };
 
-export type RealSky = { lit: boolean[]; earth: EarthLink[] };
-
-// Same rules as pipeline/illumination.py: ridge = horizon[round(az) % 360]
-export function skyFromFile(f: SiteFile, hours = DNA_HOURS): RealSky | null {
+// Ridge height in direction az: horizon[round(az) % 360]. Returns null if the file is missing fields or fails the schema.
+export function siteDataFromFile(f: SiteFile): SiteData | null {
   const centre = f.grid?.find((g) => g.dx_km === 0 && g.dy_km === 0);
-  if (!centre || centre.horizon.length !== 360 || !f.sun_az || !f.sun_el || !f.earth_az || !f.earth_el) return null;
-  const ridge = (az: number) => centre.horizon[Math.round(az) % 360];
-  const n = Math.min(hours, f.sun_el.length, f.earth_el.length);
-  const lit: boolean[] = [];
-  const earth: EarthLink[] = [];
-  for (let h = 0; h < n; h++) {
-    lit.push(f.sun_el[h] > ridge(f.sun_az[h]));
-    const margin = f.earth_el[h] - ridge(f.earth_az[h]);
-    earth.push(margin > RELIABLE_DEG ? "ok" : margin > 0 ? "weak" : "lost");
-  }
-  return { lit, earth };
-}
+  if (!centre || !f.sun_az || !f.sun_el || !f.earth_az || !f.earth_el) return null;
+  const n = Math.min(f.sun_az.length, f.sun_el.length, f.earth_az.length, f.earth_el.length);
+  if (n < MIN_REAL_HOURS) return null;
 
-// One entry per site in SITES order; null = file missing or unreadable. The whole result is null while loading.
-export function useRealSky(): (RealSky | null)[] | null {
-  const [sky, setSky] = useState<(RealSky | null)[] | null>(null);
-  useEffect(() => {
-    let alive = true;
-    Promise.all(
-      SITES.map((s) =>
-        fetch(`${import.meta.env.BASE_URL}data/${s.id}.json`)
-          .then((r) => (r.ok ? r.json() : null))
-          .then((f) => (f ? skyFromFile(f) : null))
-          .catch(() => null),
-      ),
-    ).then((all) => alive && setSky(all));
-    return () => {
-      alive = false;
-    };
-  }, []);
-  return sky;
+  const horizon = centre.horizon;
+  const ridge = (az: number) => horizon[Math.round(az) % 360];
+  const d: SiteData = { horizon, sunAz: [], sunEl: [], earthAz: [], earthEl: [], lit: [], earth: [] };
+  for (let h = 0; h < n; h++) {
+    d.sunAz.push(f.sun_az[h]);
+    d.sunEl.push(f.sun_el[h]);
+    d.earthAz.push(f.earth_az[h]);
+    d.earthEl.push(f.earth_el[h]);
+    d.lit.push(f.sun_el[h] > ridge(f.sun_az[h]));
+    const margin = f.earth_el[h] - ridge(f.earth_az[h]);
+    const link: EarthLink = margin > RELIABLE_DEG ? "ok" : margin > 0 ? "weak" : "lost";
+    d.earth.push(link);
+  }
+  return SiteDataSchema.safeParse(d).success ? d : null;
 }
