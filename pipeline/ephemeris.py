@@ -15,6 +15,7 @@ import numpy as np
 
 TT_MINUS_UTC_S = 69.184  # 37 leap seconds + 32.184 s (no leap second is scheduled before 2027)
 AU_KM = 149_597_870.7
+MOON_R_KM = 1737.4  # sphere radius used by LOLA and by the DEM code
 
 
 def _jd_utc(t0: datetime) -> float:
@@ -57,8 +58,10 @@ def _rot_matrices(ra, dec, w):
     return r3(w) @ r1(np.pi / 2 - dec) @ r3(np.pi / 2 + ra)
 
 
-def body_fixed_directions(t0: datetime, hours: int, step_h: float = 1.0):
-    """Unit vectors Moon -> Sun and Moon -> Earth in the Moon body-fixed frame, shape (N, 3) each."""
+def body_fixed_directions(t0: datetime, hours: int, step_h: float = 1.0, km: bool = False):
+    """Moon centre -> Sun and Moon centre -> Earth in the Moon body-fixed frame, shape (N, 3) each.
+    Unit vectors by default; km=True gives vectors in km (needed for the site-based sky, because Earth is only
+    ~400,000 km away and the site is 1737 km from the Moon's centre)."""
     jd = _jd_utc(t0) + np.arange(hours) * step_h / 24.0
     tt1 = np.full(hours, 2400000.5)
     tt2 = (jd - 2400000.5) + TT_MINUS_UTC_S / 86400.0
@@ -71,15 +74,20 @@ def body_fixed_directions(t0: datetime, hours: int, step_h: float = 1.0):
         earth_from_moon[i] = -moon
     R = _rot_matrices(*moon_orientation(d))
     def to_body(v):
-        v = v / np.linalg.norm(v, axis=1, keepdims=True)
+        v = v * AU_KM
+        if not km:
+            v = v / np.linalg.norm(v, axis=1, keepdims=True)
         return np.einsum("nij,nj->ni", R, v)
     return to_body(sun_from_moon), to_body(earth_from_moon)
 
 
 def az_el(vec_body: np.ndarray, lat_deg: float, lon_deg: float) -> tuple[np.ndarray, np.ndarray]:
-    """Azimuth/elevation (deg) of body-fixed unit vectors seen from (lat, lon) on the Moon."""
+    """Azimuth/elevation (deg) of body-fixed vectors (km, from the Moon's centre) seen from (lat, lon) on the surface.
+    The site's own position is subtracted first (topocentric), which lowers Earth by about 0.25 deg like SPICE does."""
     la, lo = np.radians(lat_deg), np.radians(lon_deg)
     up = np.array([np.cos(la) * np.cos(lo), np.cos(la) * np.sin(lo), np.sin(la)])
+    vec_body = vec_body - MOON_R_KM * up
+    vec_body = vec_body / np.linalg.norm(vec_body, axis=1, keepdims=True)
     east = np.array([-np.sin(lo), np.cos(lo), 0.0])
     north = np.array([-np.sin(la) * np.cos(lo), -np.sin(la) * np.sin(lo), np.cos(la)])
     el = np.degrees(np.arcsin(np.clip(vec_body @ up, -1, 1)))
@@ -88,7 +96,7 @@ def az_el(vec_body: np.ndarray, lat_deg: float, lon_deg: float) -> tuple[np.ndar
 
 
 def sun_earth_azel(lat: float, lon: float, t0: datetime, hours: int, step_h: float = 1.0) -> dict:
-    sun, earth = body_fixed_directions(t0, hours, step_h)
+    sun, earth = body_fixed_directions(t0, hours, step_h, km=True)
     sun_az, sun_el = az_el(sun, lat, lon)
     earth_az, earth_el = az_el(earth, lat, lon)
     return {"sun_az": sun_az, "sun_el": sun_el, "earth_az": earth_az, "earth_el": earth_el}

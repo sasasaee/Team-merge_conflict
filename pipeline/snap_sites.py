@@ -102,7 +102,7 @@ def main() -> None:
     a = ap.parse_args()
 
     t0 = datetime.fromisoformat(a.start).astimezone(timezone.utc)
-    sun_b, earth_b = eph.body_fixed_directions(t0, a.hours)
+    sun_b, earth_b = eph.body_fixed_directions(t0, a.hours, km=True)
     sites = load_sites(a.sites)
     if a.only:
         sites = [s for s in sites if s["id"] == a.only]
