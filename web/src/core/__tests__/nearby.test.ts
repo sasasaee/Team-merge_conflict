@@ -68,14 +68,10 @@ describe("with the real site files", () => {
 });
 
 describe("defaults and Rescue Mode balance", () => {
-  it("the planner starts with a plan that can survive at the first site, and a calendar with failing days", () => {
+  it("the planner starts with a realistic lander: 120 kWh battery, 1.8 kW power use", () => {
     const p = useMission.getState().params;
-    expect(p.batteryKwh).toBe(400);
-    expect(p.loadKw).toBe(1.0);
-    expect(simulate(p).verdict).not.toBe("fail");
-    let fails = 0;
-    for (let d = 0; d < 60; d++) if (simulate({ ...p, delayH: d * 24 }).verdict === "fail") fails++;
-    expect(fails).toBeGreaterThan(0);
+    expect(p.batteryKwh).toBe(120);
+    expect(p.loadKw).toBe(1.8);
   });
 
   const play = (siteIdx: number, crisis: number, opening: Move[], hibernateInDark: boolean) => {

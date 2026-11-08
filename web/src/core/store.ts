@@ -24,8 +24,8 @@ export const useMission = create<MissionState>((set) => ({
   params: {
     siteIdx: 0,
     delayH: 0,
-    batteryKwh: 400,
-    loadKw: 1.0,
+    batteryKwh: 120,
+    loadKw: 1.8,
     panelEff: 0.29,
     commHoursReq: 4,
     durationDays: 10,
