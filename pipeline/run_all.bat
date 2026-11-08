@@ -11,13 +11,16 @@ if not exist "%DEM%" ( echo DEM not found: %DEM% & pause & exit /b 1 )
 if not exist "%CLONE%\.git" ( echo Git clone not found: %CLONE% & pause & exit /b 1 )
 
 echo === 1/5 choosing the best point near each of the 9 NASA regions (about 10 minutes) ===
-python "%HERE%snap_sites.py" --dem "%DEM%" --sites "%HERE%sites.nasa9.yaml" --out "%HERE%sites.snapped.yaml" || ( echo FAILED at step 1 & pause & exit /b 1 )
+python "%HERE%snap_sites.py" --dem "%DEM%" --sites "%HERE%sites.nasa9.yaml" --out "%HERE%sites.snapped.yaml" --observer-h 2 || ( echo FAILED at step 1 & pause & exit /b 1 )
 
 echo === 2/5 Sun and Earth positions ===
-python "%HERE%sky.py" --sites "%HERE%sites.snapped.yaml" --out "%OUT%" || ( echo FAILED at step 2 & pause & exit /b 1 )
+python "%HERE%sky.py" --sites "%HERE%sites.snapped.yaml" --out "%OUT%" --force || ( echo FAILED at step 2 & pause & exit /b 1 )
 
 echo === 3/5 horizons and Shadow DNA (a few minutes) ===
-python "%HERE%export.py" --dem "%DEM%" --sites "%HERE%sites.snapped.yaml" --out "%OUT%" --sample || ( echo FAILED at step 3 & pause & exit /b 1 )
+python "%HERE%export.py" --dem "%DEM%" --sites "%HERE%sites.snapped.yaml" --out "%OUT%" --sample --observer-h 2 || ( echo FAILED at step 3 & pause & exit /b 1 )
+
+echo === 3b/5 refreshing the numbers in METHOD.md ===
+python "%HERE%update_method.py" --data "%OUT%" --doc "%HERE%..\docs\METHOD.md"
 
 echo === 4/5 copying into the repo clone ===
 if not exist "%CLONE%\web\public\data" mkdir "%CLONE%\web\public\data"

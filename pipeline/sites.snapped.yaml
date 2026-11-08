@@ -1,11 +1,11 @@
 # Output of snap_sites.py: each point moved to the best nearby spot (see script docstring).
 sites:
-  - {id: malapert, name: Malapert Massif, lat: -85.9479, lon: 2.0807}
+  - {id: malapert, name: Malapert Massif, lat: -85.9671, lon: -2.2659}
   - {id: mons-mouton, name: Mons Mouton, lat: -84.3884, lon: 30.8775}
-  - {id: mons-mouton-plateau, name: Mons Mouton Plateau, lat: -84.2206, lon: 29.0080}
-  - {id: nobile-rim-1, name: Nobile Rim 1, lat: -85.1868, lon: 36.6467}
-  - {id: nobile-rim-2, name: Nobile Rim 2, lat: -84.0371, lon: 59.2298}
-  - {id: haworth, name: Haworth, lat: -86.9301, lon: -25.4500}
-  - {id: de-gerlache-rim-2, name: de Gerlache Rim 2, lat: -88.3640, lon: -69.2944}
-  - {id: peak-near-cabeus-b, name: Peak near Cabeus B, lat: -85.5849, lon: -67.1033}
-  - {id: slater-plain, name: Slater Plain, lat: -87.9464, lon: 115.8368}
+  - {id: mons-mouton-plateau, name: Mons Mouton Plateau, lat: -84.1899, lon: 28.9515}
+  - {id: nobile-rim-1, name: Nobile Rim 1, lat: -85.2283, lon: 36.5736}
+  - {id: nobile-rim-2, name: Nobile Rim 2, lat: -84.0506, lon: 59.2629}
+  - {id: haworth, name: Haworth, lat: -86.9338, lon: -23.0496}
+  - {id: de-gerlache-rim-2, name: de Gerlache Rim 2, lat: -88.3732, lon: -69.1712}
+  - {id: peak-near-cabeus-b, name: Peak near Cabeus B, lat: -85.5940, lon: -67.0533}
+  - {id: slater-plain, name: Slater Plain, lat: -87.4356, lon: 113.6979}

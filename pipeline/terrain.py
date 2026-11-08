@@ -130,13 +130,14 @@ def _sample(data, r, c):
 
 
 @njit(parallel=True, cache=True, fastmath=True)
-def _horizon_kernel(data, res, r0, c0, dirs_x, dirs_y, h0, max_dist, moon_r):
+def _horizon_kernel(data, res, r0, c0, dirs_x, dirs_y, h0, max_dist, moon_r, min_dist):
     """For each of the 360 azimuths march outward and keep the largest looking-up angle (degrees)."""
     out = np.empty(360, dtype=np.float64)
     nsteps = int(max_dist / res)
+    kmin = max(1, int(min_dist / res))  # skip the ground right next to the lander (see horizon_at)
     for a in prange(360):
         best = -90.0
-        for k in range(1, nsteps + 1):
+        for k in range(kmin, nsteps + 1):
             d = k * res
             # map x grows to the right (cols), map y grows up (rows go down)
             r = r0 - dirs_y[a] * k
@@ -153,8 +154,13 @@ def _horizon_kernel(data, res, r0, c0, dirs_x, dirs_y, h0, max_dist, moon_r):
 
 
 def horizon_at(dem: Dem, x: float, y: float, lat: float, lon: float,
-               observer_h: float = 0.0, max_dist_m: float | None = None) -> np.ndarray:
-    """horizon[360] in degrees at map position (x, y). Index = compass azimuth (0 = north, 90 = east)."""
+               observer_h: float = 0.0, max_dist_m: float | None = None, min_dist_m: float = 200.0) -> np.ndarray:
+    """horizon[360] in degrees at map position (x, y). Index = compass azimuth (0 = north, 90 = east).
+
+    observer_h: height of the lander's antenna/panels above the ground (m).
+    min_dist_m: ground closer than this is ignored. A lander sits on a flat pad, and one DEM pixel (20 m) next to it
+    that is a few metres higher would otherwise read as a 10 degree "mountain" and hide the whole Sun.
+    """
     north, east = local_axes(lat, lon, dem.crs)
     az = np.radians(np.arange(360))
     d = np.cos(az)[:, None] * north[None, :] + np.sin(az)[:, None] * east[None, :]  # map-space unit vectors
@@ -165,14 +171,14 @@ def horizon_at(dem: Dem, x: float, y: float, lat: float, lon: float,
     if max_dist_m is None:
         max_dist_m = min(dem.data.shape) * dem.res / 2.0 - 2 * dem.res
     return _horizon_kernel(dem.data, dem.res, r0, c0, d[:, 0].copy(), d[:, 1].copy(),
-                           float(h0) + observer_h, max_dist_m, MOON_R)
+                           float(h0) + observer_h, max_dist_m, MOON_R, float(min_dist_m))
 
 
 # 5x5 grid, 1 km apart, centre = the site itself (index 12). dx = east, dy = north.
 GRID_OFFSETS_KM = [(dx, dy) for dy in (-2, -1, 0, 1, 2) for dx in (-2, -1, 0, 1, 2)]
 
 
-def grid_horizons(dem: Dem, lat: float, lon: float, observer_h: float = 0.0) -> list[dict]:
+def grid_horizons(dem: Dem, lat: float, lon: float, observer_h: float = 0.0, min_dist_m: float = 200.0) -> list[dict]:
     """25 horizons: the site and 24 neighbours. Output matches the data contract: grid[] = {dx_km, dy_km, horizon[360]}."""
     x0, y0 = site_xy(lat, lon, dem.crs)
     north, east = local_axes(lat, lon, dem.crs)
@@ -180,6 +186,6 @@ def grid_horizons(dem: Dem, lat: float, lon: float, observer_h: float = 0.0) -> 
     for dx, dy in GRID_OFFSETS_KM:
         x = x0 + (dx * east[0] + dy * north[0]) * 1000.0
         y = y0 + (dx * east[1] + dy * north[1]) * 1000.0
-        hz = horizon_at(dem, x, y, lat, lon, observer_h)
+        hz = horizon_at(dem, x, y, lat, lon, observer_h, min_dist_m=min_dist_m)
         out.append({"dx_km": dx, "dy_km": dy, "horizon": [round(float(v), 2) for v in hz]})
     return out

@@ -81,3 +81,58 @@ def test_moving_east_toward_a_ridge_raises_its_angle():
     add_block(dem, x0 + e[0] * 8_000, y0 + e[1] * 8_000, 300, 400.0)
     g = {(p["dx_km"], p["dy_km"]): p["horizon"] for p in T.grid_horizons(dem, -88, 0)}
     assert g[(2, 0)][90] > g[(0, 0)][90] > g[(-2, 0)][90]
+
+
+# ---- near-field handling: the lander sits on a flat pad, so ground within min_dist_m is ignored ----
+
+def _longest_identical_run(hz):
+    best = run = 1
+    for i in range(1, len(hz)):
+        run = run + 1 if hz[i] == hz[i - 1] else 1
+        best = max(best, run)
+    return best
+
+
+def test_a_pixel_next_to_the_lander_is_not_a_mountain():
+    dem, x0, y0 = flat_dem(-88, 0, half_km=10, res=20.0)
+    r0, c0 = (int(round(v)) for v in dem.xy_to_rc(x0, y0))
+    for dr in (-1, 0, 1):
+        for dc in (-1, 0, 1):
+            if dr or dc:
+                dem.data[r0 + dr, c0 + dc] = 4.0           # all 8 neighbours 4 m higher: ~11 degrees at 20 m
+    legacy = T.horizon_at(dem, x0, y0, -88, 0, min_dist_m=0.0)
+    assert legacy.max() > 8.0                              # the old behaviour: a fake 10-degree wall
+    assert T.horizon_at(dem, x0, y0, -88, 0).max() < 0.5   # default: ignored
+
+
+def test_real_ridges_beyond_the_cut_are_kept():
+    dem, x0, y0 = flat_dem(-88, 0, half_km=30)
+    n, e = T.local_axes(-88, 0, T.MOON_SOUTH_STERE)
+    add_block(dem, x0 + e[0] * 10_000, y0 + e[1] * 10_000, 400, 500.0)
+    assert abs(T.horizon_at(dem, x0, y0, -88, 0)[90] - expected(9_600, 500.0)) < 0.35
+
+
+def test_lander_height_lowers_a_nearby_ridge():
+    dem, x0, y0 = flat_dem(-88, 0, half_km=10, res=20.0)
+    n, e = T.local_axes(-88, 0, T.MOON_SOUTH_STERE)
+    add_block(dem, x0 + e[0] * 400, y0 + e[1] * 400, 30, 6.0)     # a 6 m rise about 400 m away
+    ground = T.horizon_at(dem, x0, y0, -88, 0, observer_h=0.0)[90]
+    on_legs = T.horizon_at(dem, x0, y0, -88, 0, observer_h=2.0)[90]
+    assert 0.15 < ground - on_legs < 0.5                           # 6 m vs 4 m of rise: about 0.3 degrees
+
+
+def test_dem_noise_does_not_make_step_shaped_horizons():
+    rng = np.random.default_rng(1)
+    n = int(2 * 20_000 / 20.0)
+    x0, y0 = T.site_xy(-86.0, 0.0, T.MOON_SOUTH_STERE)
+    dem = T.Dem(rng.normal(0, 2.0, (n, n)).astype(np.float32), x0 - 20_000, y0 + 20_000, 20.0, T.MOON_SOUTH_STERE)
+    legacy = T.horizon_at(dem, x0, y0, -86.0, 0.0, min_dist_m=0.0)
+    fixed = T.horizon_at(dem, x0, y0, -86.0, 0.0)
+    assert _longest_identical_run(legacy) >= 30            # the staircase we saw at Malapert (67-72 degrees wide)
+    assert _longest_identical_run(fixed) < 10
+    assert fixed.mean() < 1.0 < legacy.mean()
+
+
+def test_grid_horizons_pass_the_near_field_options_through():
+    dem, x0, y0 = flat_dem(-88, 0, half_km=30)
+    assert T.grid_horizons(dem, -88, 0, observer_h=2.0, min_dist_m=300.0)[12]["horizon"] != []

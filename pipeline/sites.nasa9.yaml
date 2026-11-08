@@ -68,7 +68,7 @@ sites:
 
   - id: slater-plain
     name: Slater Plain
-    lat: -88.08
-    lon: 111.29
+    lat: -87.40
+    lon: 111.00
     source: NASA Artemis III Candidate Region / Slater crater northern plain (88.08 S, 111.29 E)
 

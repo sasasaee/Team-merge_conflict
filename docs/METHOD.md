@@ -7,7 +7,7 @@ How `pipeline/` turns NASA's Moon height map into the `grid` and `dna` fields of
 | What | Source |
 |---|---|
 | Height map | LOLA south-pole DEM, 20 m/pixel (`LDEM_80S_20MPP_ADJ`), NASA PGDA product 90. Polar stereographic, Moon sphere R = 1,737,400 m. |
-| Sun and Earth directions | `pipeline/ephemeris.py` and `sky.py`: ERFA planetary positions plus the IAU 2009 Moon orientation model, computed from the site's own position (Earth is only ~400,000 km away, so ignoring the site's offset from the Moon's centre would put Earth about 0.25 degrees too high). Hourly, from 1 March 2027 00:00 UTC (the app's planned landing), 74 days. Checked against NASA SPICE (DE440), see section 4. |
+| Sun and Earth directions | `pipeline/ephemeris.py` and `sky.py`: ERFA planetary positions plus the IAU 2009 Moon orientation model, computed from the site's own position (Earth is only ~400,000 km away, so ignoring the site's offset from the Moon's centre would put Earth about 0.25 degrees too high). Hourly, from 1 March 2027 00:00 UTC (the app's planned landing), for one year (8,760 hours). Checked against NASA SPICE (DE440), see section 4. |
 | Site points | `pipeline/sites.snapped.yaml` (see section 5), starting from NASA's region centres in `pipeline/sites.nasa9.yaml` (Atia, T-16). |
 
 ## 2. Horizon (T-24, T-25)
@@ -16,7 +16,8 @@ How `pipeline/` turns NASA's Moon height map into the `grid` and `dna` fields of
 2. From the site, rays are cast across the DEM in 360 directions, one per compass degree (0 = north, 90 = east). Each ray steps pixel by pixel and keeps the largest elevation angle. This is `horizon[360]` (`horizon_at`, Numba).
 3. Local north and east are taken from pyproj at each site, so the result does not depend on how the DEM grid is oriented.
 4. **Curvature correction:** at distance d the ground drops by d²/(2R) because the Moon is round, so that amount is subtracted from each sample before taking the angle.
-5. This is repeated for a 5x5 grid of points 1 km apart (`grid_horizons`). That gives 25 horizons per site, which powers "move 2 km east" in the app.
+5. This is repeated for a 5x5 grid of points 1 km apart (`grid_horizons`). That gives 25 horizons per site, which powers the "Move N km" what-ifs in the app.
+6. **Near-field cut and lander height.** Rays start 200 m from the lander (`min_dist_m`) and the lander is 2 m above the ground (`--observer-h 2`). An earlier version started at the nearest 20 m pixel at ground level. A DEM pixel a few metres higher next to the site then read as a 10 degree mountain, and because rays in a whole 45-degree sector hit the same neighbouring pixel, the horizon came out as flat steps (at Malapert: exactly 10.2 degrees for 67 degrees of azimuth, then exactly 11.6 degrees for 72 degrees). On flat ground with only 2 m of noise the old code gave a mean horizon of 2.8 degrees; the new code gives 0.3 degrees. This matters because the Sun is only a few degrees above the horizon at the pole.
 
 Negative horizon values are normal on a high spot: the ground falls away below the flat plane in that direction.
 
@@ -54,13 +55,44 @@ What has been checked so far:
 | Projection: the DEM's CRS against the CRS the code assumes | Identical positions. |
 | Sun elevation range vs. physics | Sub-solar latitude stays within about +/-1.55 degrees (the Moon's axial tilt). The highest Sun at a site is about 91.5 degrees minus the site's southern latitude, e.g. 7.5 degrees at 84S. Our values stay below that ceiling (e.g. Mons Mouton at 84.1S: Sun up to 4.9 degrees over the 74 days). |
 | Earth libration | Sub-Earth point swings about +/-6.8 degrees in latitude and +/-7.8 degrees in longitude, matching the known libration of about +/-6.7 and +/-7.7 degrees. |
-| Code tests | 14 pytest tests pass (synthetic ridge with a known angle, wrap-around at north, DNA rules, ephemeris sanity). |
+| Horizon on flat noisy ground | Flat ground with 2 m of random noise gives a mean horizon of 0.3 degrees and no step-shaped plateaus (the old code: 2.8 degrees and plateaus up to 90 degrees wide). Tested in `test_terrain.py`. |
+| Code tests | 23 pytest tests pass (synthetic ridge with a known angle, wrap-around at north, near-field handling, DNA rules, ephemeris sanity, NASA-map reader). |
 | Python and TypeScript DNA agree | Identical on a synthetic site. |
 | Sun/Earth sky against NASA SPICE (DE440 ephemeris and lunar principal-axis orientation, Atia's method) | At five sites over 74 days: Sun elevation within 0.002 degrees, Earth elevation within 0.003 degrees, azimuths within 0.004 degrees. An earlier version ignored the parallax of the site on the Moon's surface and put Earth 0.25 degrees too high; that was found by this comparison and fixed. |
 
-**Still open:** a comparison of our sunlit and Earth-visibility fractions against NASA's published per-region numbers. The NASA papers we found (LPSC 2024 abstract 1695, LPSC 2025 abstract 2655, LPSC 2026 abstract 1901) give screening thresholds and maps, not tables of numbers: for instance, a site should be sunlit at least 33% of the time and see Earth at least 50% of the time. The per-region values are in figures that must be read from the papers. Our own per-site values are in the `dna` field of each `web/public/data/<site>.json` (`lit` = sunlit fraction, `comm` = reliable Earth-link fraction).
+**Comparison with NASA's published values (T-30).** Sunlit and Earth-link fractions for each site, over the first 28 days (what the Shadow DNA page shows) and over the full year of data, with NASA's screening thresholds applied to the full-year figures. This block is rewritten from the site files by `pipeline/update_method.py` (run_all.bat does it), so it always matches the data in the repo:
 
-Differences are expected: NASA reports long-term averages over the 18.6-year lunar cycle, at specific heights above ground, while our numbers cover 28 days from a fixed date.
+<!-- T30-AUTO-START -->
+| Site | Mean horizon | Sunlit, first 28 days (app DNA) | Sunlit, 1 year | Earth link OK, first 28 days | Earth link OK, 1 year | Sunlit at least 33% (1 yr) | Earth at least 50% (1 yr) |
+|---|---|---|---|---|---|---|---|
+| Malapert Massif | -2.7 deg | 82% | 61% | 84% | 87.84% | yes | yes |
+| de Gerlache Rim 2 | -0.9 deg | 59% | 56% | 45% | 50.84% | yes | yes |
+| Nobile Rim 1 | -1.6 deg | 63% | 53% | 58% | 65.93% | yes | yes |
+| Nobile Rim 2 | 0.6 deg | 54% | 47% | 57% | 64.81% | yes | yes |
+| Slater Plain | -0.9 deg | 50% | 46% | 30% | 33.28% | yes | no |
+| Mons Mouton Plateau | -0.2 deg | 53% | 42% | 76% | 83.00% | yes | yes |
+| Mons Mouton | 0.4 deg | 48% | 37% | 85% | 89.19% | yes | yes |
+| Haworth | -0.6 deg | 43% | 34% | 42% | 47.24% | yes | no |
+| Peak near Cabeus B | 1.7 deg | 39% | 32% | 49% | 55.46% | no | yes |
+
+Result: 8 of 9 sites pass the sunlight threshold (below it: Peak near Cabeus B); 7 of 9 pass the Earth threshold (below it: Slater Plain, Haworth).
+Our best full-year sunlit value is 61% (median of the lit sites 46%), against 77.1% to 88.0% published for the best points. Every site is below that range, as expected: the published values are the best points of a whole polar area.
+<!-- T30-AUTO-END -->
+
+How to read it:
+
+- **NASA screening thresholds.** The NASA abstracts we found (LPSC 2024 abstract 1695, LPSC 2025 abstract 2655, LPSC 2026 abstract 1901) give thresholds, not per-site tables: a site should be sunlit at least 33% of the time and see Earth at least 50% of the time. The table checks our values against those rules; it is not a comparison with NASA's measured values.
+- **Published illumination values.** Glaeser et al. (2014, Icarus 243, 78-90) computed illumination from LOLA terrain for the south pole. Their abstract gives average illumination of 77.1% to 88.0% at the best points of a 50 x 50 km region, highest on the ridge between Shackleton and de Gerlache craters. Those are the best points of a whole polar area, while ours are one point per 15 km region.
+- **Why the Sun alone gives about 50%.** Over a year the Sun's elevation at a polar site averages about 0 degrees, so a site whose horizon sits near 0 degrees is lit about half the time. Only a point whose horizon is negative in the Sun's directions, a high peak looking down on its surroundings, can approach 80%.
+- **Why the numbers are not directly comparable.** NASA reports long-term averages over the 18.6-year lunar cycle at a stated height above ground; ours cover one year from a fixed date (1 March 2027) with the lander 2 m above ground, and treat the Sun as a point. The first 28 days differ from the full year by a few points because the Sun's path changes through the year.
+
+**Direct comparison with NASA's illumination maps (PGDA product 69, Mazarico et al. 2011).** These are 18.6-year averages of the Sun's visibility (and of Earth's visibility) at 60 to 240 m per pixel. `pipeline/compare_nasa.py` reads them at each of our points. NASA counts Earth as visible if any part of its disc is above the horizon, so the Earth column compares with our margin above 0 degrees, not the stricter 2.5 degree rule.
+
+<!-- NASA69-START -->
+Not run yet. Download `AVGVISIB_75S_120M_201608.TIF` (and optionally `AVGVISIB_75S_120M_201608_EARTH.TIF`) from https://pgda.gsfc.nasa.gov/products/69 and run `python pipeline/compare_nasa.py --sun <file> --earth <file> --data web/public/data --doc docs/METHOD.md`.
+<!-- NASA69-END -->
+
+This is a plausibility check, not a point-by-point validation of every number. The strongest further test would be to run the pipeline at the coordinates of the Shackleton-de Gerlache ridge point in Glaeser et al. and compare with their published value for the same place. We have not done that.
 
 ## 5. Choosing the site points
 
@@ -68,11 +100,11 @@ NASA's regions are about 15 km wide and only small parts of them are well lit, s
 
 The chosen points for all nine sites are in `pipeline/sites.snapped.yaml`, and the NASA region centres they started from are in `pipeline/sites.nasa9.yaml`.
 
-The start points are NASA region centres, so the chosen points are best-scoring spots within a few km of them, not NASA's exact landing sites. Sites that move a long way or score low (see the printout of `snap_sites.py`) should be treated as weaker candidates.
+The start points are NASA region centres, so the chosen points are best-scoring spots within a few km of them, not NASA's exact landing sites. Sites that move a long way or score low (see the printout of `snap_sites.py`) should be treated as weaker candidates. Slater Plain is the clearest case: it is 0% sunlit over the whole year at its chosen point. NASA describes it as the plain north of Slater crater, which an LPSC 2025 abstract (no. 2401) places at about 88S, 111E. Our start point (88.08S, 111.29E) and the snapped point are both within about 5 km of that crater centre, so they are probably on or beside the crater, not on the plain. Treat the 0% as a placement problem, not as a result for the region, until a start point farther north is used.
 
 ## 6. Known limits
 
-- The horizon is computed from a height point at ground level (observer height 0), which is slightly pessimistic for a lander.
+- The lander is assumed to stand on a flat pad: ground within 200 m is ignored and the lander is 2 m above the surface. A boulder or rim closer than 200 m would block more sky than we model.
 - The 20 m DEM can miss small boulders and craters near the site. LOLA 5 m maps exist for some sites.
 - The 150 km crop ignores terrain farther than about 75 km, which matters little for a Sun a few degrees above the horizon.
 - Sun and Earth are treated as points (disc centre). The Sun is about 0.5 degrees wide, so edge cases are lit slightly less often than in reality.
@@ -84,8 +116,10 @@ The start points are NASA region centres, so the chosen points are best-scoring 
 
 ```
 pip install -r pipeline/requirements.txt
-python pipeline/snap_sites.py --dem data/LDEM_80S_20MPP_ADJ.tiff --sites pipeline/sites.nasa9.yaml
-python pipeline/sky.py    --sites pipeline/sites.snapped.yaml --out web/public/data
-python pipeline/export.py --dem data/LDEM_80S_20MPP_ADJ.tiff --sites pipeline/sites.snapped.yaml --out web/public/data
+python pipeline/snap_sites.py --dem data/LDEM_80S_20MPP_ADJ.tiff --sites pipeline/sites.nasa9.yaml --observer-h 2
+python pipeline/sky.py    --sites pipeline/sites.snapped.yaml --out web/public/data --force
+python pipeline/export.py --dem data/LDEM_80S_20MPP_ADJ.tiff --sites pipeline/sites.snapped.yaml --out web/public/data --observer-h 2
+python pipeline/update_method.py --data web/public/data --doc docs/METHOD.md
 python -m pytest pipeline/tests -q
 ```
+(`pipeline/run_all.bat` runs all of this on Windows.) Use `--force` for the sky step whenever the site points moved, because the Sun and Earth directions depend on the exact position.

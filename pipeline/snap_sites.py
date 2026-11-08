@@ -33,13 +33,13 @@ RELIABLE_DEG = 2.5
 
 
 @njit(parallel=True, cache=True, fastmath=True)
-def _coarse_horizon(data, res, r0, c0, dx, dy, h0, nsteps, stride, moon_r):
+def _coarse_horizon(data, res, r0, c0, dx, dy, h0, nsteps, stride, moon_r, kmin):
     """Fast, rough horizon: few azimuths, steps of `stride` pixels. For ranking candidates only."""
     n = dx.shape[0]
     out = np.empty(n)
     for a in prange(n):
         best = -90.0
-        for k in range(1, nsteps + 1):
+        for k in range(kmin, nsteps + 1):
             kk = k * stride
             d = kk * res
             r = r0 - dy[a] * kk
@@ -68,7 +68,7 @@ def _slope_deg(dem: T.Dem, x: float, y: float, base_m: float = 100.0) -> float:
     return math.degrees(math.atan(math.hypot(zx, zy)))
 
 
-def evaluate(dem, x, y, lat, lon, sun_b, earth_b, n_az=72, max_dist=40_000.0, stride=2):
+def evaluate(dem, x, y, lat, lon, sun_b, earth_b, n_az=72, max_dist=40_000.0, stride=2, observer_h=0.0, min_dist=200.0):
     """(lit fraction, Earth-ok fraction, mean horizon deg) for one point."""
     north, east = T.local_axes(lat, lon, dem.crs)
     az = np.radians(np.arange(n_az) * 360.0 / n_az)
@@ -78,7 +78,8 @@ def evaluate(dem, x, y, lat, lon, sun_b, earth_b, n_az=72, max_dist=40_000.0, st
     if np.isnan(h0):
         return None
     nsteps = int(max_dist / (dem.res * stride))
-    hz = _coarse_horizon(dem.data, dem.res, r0, c0, d[:, 0].copy(), d[:, 1].copy(), float(h0), nsteps, stride, T.MOON_R)
+    kmin = max(1, int(min_dist / (dem.res * stride)))  # same near-field cut as terrain.horizon_at
+    hz = _coarse_horizon(dem.data, dem.res, r0, c0, d[:, 0].copy(), d[:, 1].copy(), float(h0) + observer_h, nsteps, stride, T.MOON_R, kmin)
     def look(vec_b):
         a, e = eph.az_el(vec_b, lat, lon)
         return e, hz[np.rint(a / (360.0 / n_az)).astype(int) % n_az]
@@ -99,6 +100,7 @@ def main() -> None:
     ap.add_argument("--start", default="2027-03-01T00:00:00+00:00")
     ap.add_argument("--hours", type=int, default=672)
     ap.add_argument("--only")
+    ap.add_argument("--observer-h", type=float, default=2.0, help="lander height above ground in metres (match export.py)")
     a = ap.parse_args()
 
     t0 = datetime.fromisoformat(a.start).astimezone(timezone.utc)
@@ -112,7 +114,7 @@ def main() -> None:
         dem = T.crop_dem(a.dem, s["lat"], s["lon"], half_km=a.radius_km + 45)
         x0, y0 = T.site_xy(s["lat"], s["lon"], dem.crs)
         h_here = _height(dem, x0, y0)
-        base = evaluate(dem, x0, y0, s["lat"], s["lon"], sun_b, earth_b)
+        base = evaluate(dem, x0, y0, s["lat"], s["lon"], sun_b, earth_b, observer_h=a.observer_h)
         print(f"\n[{s['id']}] {s['name']}  start point {s['lat']:.4f}, {s['lon']:.4f}")
         print(f"  DEM height here {h_here / 1000:+.2f} km | start point: lit {base[0]:.0%}, Earth ok {base[1]:.0%}, mean horizon {base[2]:.1f} deg")
 
@@ -131,7 +133,7 @@ def main() -> None:
                 if _slope_deg(dem, x, y) > a.max_slope:
                     continue
                 lon, lat = inv.transform(x, y)
-                m = evaluate(dem, x, y, lat, lon, sun_b, earth_b)
+                m = evaluate(dem, x, y, lat, lon, sun_b, earth_b, observer_h=a.observer_h)
                 if m is None:
                     continue
                 n_ok += 1
