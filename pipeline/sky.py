@@ -38,7 +38,7 @@ def main() -> None:
             print(f"[{s['id']}] already has Sun/Earth arrays, left alone (use --force to replace)")
             continue
         for k in ("id", "name", "lat", "lon"):
-            data.setdefault(k, s[k])
+            data[k] = s[k]  # always the current point (see export.py)
         r = eph.sun_earth_azel(s["lat"], s["lon"], t0, a.hours)
         data.update({"t0": t0.strftime("%Y-%m-%dT%H:%M:%SZ"), "step_h": 1, "n": a.hours})
         data.update({k: [round(float(v), 2) for v in r[k]] for k in KEYS})

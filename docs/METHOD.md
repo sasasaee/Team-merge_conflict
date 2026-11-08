@@ -53,7 +53,7 @@ What has been checked so far:
 |---|---|
 | Georeferencing: DEM height at the starting points against NASA's region descriptions | Malapert +5.12 km, Mons Mouton +4.95 km, Nobile Rim 1 +6.07 km. Malapert and Mons Mouton agree with the roughly +5 km usually quoted for these massifs. Nobile Rim 1 is higher than the rough +3 km we expected; that reference was approximate and should be checked against a NASA source. |
 | Projection: the DEM's CRS against the CRS the code assumes | Identical positions. |
-| Sun elevation range vs. physics | Sub-solar latitude stays within about +/-1.55 degrees (the Moon's axial tilt). The highest Sun at a site is about 91.5 degrees minus the site's southern latitude, e.g. 7.5 degrees at 84S. Our values stay below that ceiling (e.g. Mons Mouton at 84.1S: Sun up to 4.9 degrees over the 74 days). |
+| Sun elevation range vs. physics | Sub-solar latitude stays within about +/-1.55 degrees (the Moon's axial tilt). The highest Sun at a site is about 91.5 degrees minus the site's southern latitude, e.g. 7.5 degrees at 84S. Our values stay at or below that ceiling (e.g. Mons Mouton at 84.4S: Sun up to 7.1 degrees over the year, right at the 7.1 degree ceiling). |
 | Earth libration | Sub-Earth point swings about +/-6.8 degrees in latitude and +/-7.8 degrees in longitude, matching the known libration of about +/-6.7 and +/-7.7 degrees. |
 | Horizon on flat noisy ground | Flat ground with 2 m of random noise gives a mean horizon of 0.3 degrees and no step-shaped plateaus (the old code: 2.8 degrees and plateaus up to 90 degrees wide). Tested in `test_terrain.py`. |
 | Code tests | 23 pytest tests pass (synthetic ridge with a known angle, wrap-around at north, near-field handling, DNA rules, ephemeris sanity, NASA-map reader). |
@@ -100,7 +100,7 @@ NASA's regions are about 15 km wide and only small parts of them are well lit, s
 
 The chosen points for all nine sites are in `pipeline/sites.snapped.yaml`, and the NASA region centres they started from are in `pipeline/sites.nasa9.yaml`.
 
-The start points are NASA region centres, so the chosen points are best-scoring spots within a few km of them, not NASA's exact landing sites. Sites that move a long way or score low (see the printout of `snap_sites.py`) should be treated as weaker candidates. Slater Plain is the clearest case: it is 0% sunlit over the whole year at its chosen point. NASA describes it as the plain north of Slater crater, which an LPSC 2025 abstract (no. 2401) places at about 88S, 111E. Our start point (88.08S, 111.29E) and the snapped point are both within about 5 km of that crater centre, so they are probably on or beside the crater, not on the plain. Treat the 0% as a placement problem, not as a result for the region, until a start point farther north is used.
+The start points are NASA region centres, so the chosen points are best-scoring spots within a few km of them, not NASA's exact landing sites. Sites that move a long way or score low (see the printout of `snap_sites.py`) should be treated as weaker candidates. Slater Plain shows why the start point matters. NASA describes it as the plain north of Slater crater, which an LPSC 2025 abstract (no. 2401) places at about 88S, 111E. Our first start point (88.08S, 111.29E) was within about 5 km of that crater centre and came out 0% sunlit, and the best point found beside it was no better. Starting about 20 km farther north (87.4S, 111.0E) gives a chosen point of 87.44S, 113.70E that is sunlit about 61% of the year but has reliable Earth contact only about 31% of the time, so it passes the sunlight threshold and fails the Earth threshold. The crater position in the abstract is rounded, so this start point is our best reading of "north of the crater", not a NASA coordinate.
 
 ## 6. Known limits
 
@@ -117,7 +117,7 @@ The start points are NASA region centres, so the chosen points are best-scoring 
 ```
 pip install -r pipeline/requirements.txt
 python pipeline/snap_sites.py --dem data/LDEM_80S_20MPP_ADJ.tiff --sites pipeline/sites.nasa9.yaml --observer-h 2
-python pipeline/sky.py    --sites pipeline/sites.snapped.yaml --out web/public/data --force
+python pipeline/sky.py    --sites pipeline/sites.snapped.yaml --out web/public/data --hours 8760 --force
 python pipeline/export.py --dem data/LDEM_80S_20MPP_ADJ.tiff --sites pipeline/sites.snapped.yaml --out web/public/data --observer-h 2
 python pipeline/update_method.py --data web/public/data --doc docs/METHOD.md
 python -m pytest pipeline/tests -q

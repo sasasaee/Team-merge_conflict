@@ -47,7 +47,7 @@ def process_site(site: dict, dem: T.Dem, out_dir: Path, sample: bool = False, ob
     path = out_dir / f"{site['id']}.json"
     data = json.loads(path.read_text()) if path.exists() else {}
     for k in ("id", "name", "lat", "lon"):
-        data.setdefault(k, site[k])
+        data[k] = site[k]  # always the current point: a stale lat/lon from an older run must not survive
 
     grid = T.grid_horizons(dem, site["lat"], site["lon"], observer_h)
     data["grid"] = grid
