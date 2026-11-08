@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { SITES, getSite, getSiteAt, loadRealSites, usingRealData } from "../sites";
 import { PRESETS, customScenario, runScenario } from "../scenarios";
 import { simulate } from "../simulate";
-import { CRISES, RESCUE_HARDWARE, applyMove, canMove, isLit, startRescue, tick, type Move } from "../rescue";
+import { CRISES, RESCUE_HARDWARE, applyMove, canMove, isLit, startRescue, tick } from "../rescue";
 import { useMission } from "../store";
 import type { MissionParams } from "../types";
 
@@ -74,22 +74,22 @@ describe("defaults and Rescue Mode balance", () => {
     expect(p.loadKw).toBe(1.8);
   });
 
-  const play = (siteIdx: number, crisis: number, opening: Move[], hibernateInDark: boolean) => {
-    let s = startRescue(CRISES[crisis], { ...params(siteIdx), ...RESCUE_HARDWARE });
-    for (const m of opening) s = applyMove(s, m);
-    while (s.status === "running") {
-      if (hibernateInDark && !isLit(s, s.t) && canMove(s, "hibernate")) s = applyMove(s, "hibernate");
-      s = tick(s);
-    }
-    return s.status;
-  };
-
-  it("doing nothing loses and hibernating through the dark wins, whatever the planner settings are", () => {
-    for (const i of [0, 1, 2, 3]) {
-      CRISES.forEach((_, c) => {
-        expect(play(i, c, [], false)).toBe("lost");
-        expect(play(i, c, [], true)).toBe("saved");
+  it("Rescue Mode outcomes do not depend on the planner's battery or power settings", () => {
+    const outcome = (siteIdx: number, crisis: number, battery: number, load: number, hibernateInDark: boolean) => {
+      let s = startRescue(CRISES[crisis], { ...params(siteIdx, { batteryKwh: battery, loadKw: load }), ...RESCUE_HARDWARE });
+      while (s.status === "running") {
+        if (hibernateInDark && !isLit(s, s.t) && canMove(s, "hibernate")) s = applyMove(s, "hibernate");
+        s = tick(s);
+      }
+      return `${s.status}@${s.t}`;
+    };
+    SITES.forEach((_, i) => {
+      CRISES.forEach((_c, c) => {
+        for (const smart of [false, true]) {
+          expect(outcome(i, c, 120, 1.8, smart)).toBe(outcome(i, c, 400, 1.0, smart));
+          expect(outcome(i, c, 120, 1.8, smart)).toBe(outcome(i, c, 40, 3.0, smart));
+        }
       });
-    }
+    });
   });
 });
