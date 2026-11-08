@@ -65,18 +65,18 @@ What has been checked so far:
 <!-- T30-AUTO-START -->
 | Site | Mean horizon | Sunlit, first 28 days (app DNA) | Sunlit, 1 year | Earth link OK, first 28 days | Earth link OK, 1 year | Sunlit at least 33% (1 yr) | Earth at least 50% (1 yr) |
 |---|---|---|---|---|---|---|---|
-| Malapert Massif | -2.7 deg | 82% | 61% | 84% | 87.84% | yes | yes |
-| de Gerlache Rim 2 | -0.9 deg | 59% | 56% | 45% | 50.84% | yes | yes |
-| Nobile Rim 1 | -1.6 deg | 63% | 53% | 58% | 65.93% | yes | yes |
-| Nobile Rim 2 | 0.6 deg | 54% | 47% | 57% | 64.81% | yes | yes |
-| Slater Plain | -0.9 deg | 50% | 46% | 30% | 33.28% | yes | no |
-| Mons Mouton Plateau | -0.2 deg | 53% | 42% | 76% | 83.00% | yes | yes |
-| Mons Mouton | 0.4 deg | 48% | 37% | 85% | 89.19% | yes | yes |
-| Haworth | -0.6 deg | 43% | 34% | 42% | 47.24% | yes | no |
-| Peak near Cabeus B | 1.7 deg | 39% | 32% | 49% | 55.46% | no | yes |
+| Malapert Massif | -2.7 deg | 82% | 84% | 84% | 87.73% | yes | yes |
+| de Gerlache Rim 2 | -0.9 deg | 59% | 64% | 45% | 47.26% | yes | no |
+| Haworth | -0.6 deg | 43% | 63% | 42% | 44.09% | yes | no |
+| Nobile Rim 1 | -1.6 deg | 63% | 63% | 58% | 61.58% | yes | yes |
+| Slater Plain | -0.9 deg | 50% | 61% | 30% | 31.43% | yes | no |
+| Nobile Rim 2 | 0.6 deg | 54% | 52% | 57% | 59.87% | yes | yes |
+| Mons Mouton Plateau | -0.2 deg | 53% | 51% | 76% | 80.25% | yes | yes |
+| Mons Mouton | 0.4 deg | 48% | 48% | 85% | 86.96% | yes | yes |
+| Peak near Cabeus B | 1.7 deg | 39% | 45% | 49% | 51.48% | yes | yes |
 
-Result: 8 of 9 sites pass the sunlight threshold (below it: Peak near Cabeus B); 7 of 9 pass the Earth threshold (below it: Slater Plain, Haworth).
-Our best full-year sunlit value is 61% (median of the lit sites 46%), against 77.1% to 88.0% published for the best points. Every site is below that range, as expected: the published values are the best points of a whole polar area.
+Result: 9 of 9 sites pass the sunlight threshold; 6 of 9 pass the Earth threshold (below it: de Gerlache Rim 2, Haworth, Slater Plain).
+Our best full-year sunlit value is 84% (median of the lit sites 61%), against 77.1% to 88.0% published for the best points. The best site reaches the published best-point range.
 <!-- T30-AUTO-END -->
 
 How to read it:
