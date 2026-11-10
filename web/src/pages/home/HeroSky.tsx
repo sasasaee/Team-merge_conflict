@@ -8,12 +8,23 @@ import { colors } from "@/ui";
 // x = compass direction (N on the left edge, all the way round), y = height above the horizon.
 const W = 1600;
 const H = 420;
-const GROUND = 330; // y of 0 degrees
-const SCALE = 26; // px per degree (heights exaggerated so the low south-pole Sun is visible)
+const TOP = 40; // highest point the Sun or Earth reaches is drawn here
+const BOTTOM = 300; // lowest point of the ridge is drawn here (above the dark foreground)
+const MAX_PX_PER_DEG = 60;
 const TICK_MS = 90; // one mission hour per tick, so a lunar month loops in about a minute
 
 const x = (az: number) => (az / 360) * W;
-const y = (el: number) => GROUND - el * SCALE;
+
+// Vertical scale per site: fit this site's ridge, Sun and Earth into the picture (heights exaggerated).
+function fitScale(horizon: number[], sunEl: number[], earthEl: number[], hours: number) {
+  let lo = Math.min(...horizon);
+  let hi = Math.max(...horizon);
+  for (let h = 0; h < hours; h++) hi = Math.max(hi, sunEl[h], earthEl[h]);
+  lo -= 0.5;
+  hi += 0.8;
+  const px = Math.min(MAX_PX_PER_DEG, (BOTTOM - TOP) / (hi - lo));
+  return (el: number) => BOTTOM - (el - lo) * px;
+}
 
 // Fixed star field (same every render)
 const STARS = Array.from({ length: 70 }, (_, i) => ({
@@ -22,6 +33,20 @@ const STARS = Array.from({ length: 70 }, (_, i) => ({
   r: i % 7 === 0 ? 1.6 : 0.9,
   o: 0.25 + ((i * 37) % 60) / 100,
 }));
+
+// Fixed grain dots for the rock texture (one 96 x 96 tile, repeated)
+const GRAIN = Array.from({ length: 70 }, (_, i) => ({
+  cx: (i * 37) % 96,
+  cy: (i * 61) % 96,
+  r: i % 5 === 0 ? 0.9 : 0.5,
+  light: i % 3 === 0,
+}));
+
+// Ridge path from a horizon array; `shift` rotates it (degrees) and `lift` raises it (px), for the hazy far layers
+function ridgePath(horizon: number[], y: (el: number) => number, shift = 0, lift = 0) {
+  const pts = Array.from({ length: 361 }, (_, az) => `${az === 0 ? "M" : "L"}${x(az)} ${y(horizon[(az + shift + 360) % 360]) - lift}`);
+  return pts.join(" ");
+}
 
 const LINK = {
   ok: { label: "Strong", color: colors.earth },
@@ -40,10 +65,10 @@ export function HeroSky() {
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
 
   const site = getSite(siteIdx);
-  const ridge = useMemo(
-    () => site.horizon.map((el, az) => `${az === 0 ? "M" : "L"}${x(az)} ${y(el)}`).join(" ") + ` L${W} ${y(site.horizon[0])}`,
-    [site],
-  );
+  const y = useMemo(() => fitScale(site.horizon, site.sunEl, site.earthEl, loopH), [site, loopH]);
+  const ridge = useMemo(() => ridgePath(site.horizon, y), [site, y]);
+  // Two hazy copies of the same real ridge, rotated and raised, read as distant ranges (drawn faint, behind the Sun)
+  const farRidges = useMemo(() => [ridgePath(site.horizon, y, 47, 34), ridgePath(site.horizon, y, -23, 16)], [site, y]);
   const month = useMemo(() => simulate({ ...params, delayH: 0, durationDays: 28 }), [params]);
 
   useEffect(() => {
@@ -59,10 +84,12 @@ export function HeroSky() {
   const margin = site.sunEl[hour] - site.horizon[Math.round(site.sunAz[hour]) % 360];
   const soc = month.soc[hour] ?? 0;
   const socPct = soc / params.batteryKwh;
+  const ridgeAtSun = y(site.horizon[Math.round(site.sunAz[hour]) % 360]);
+  const away = sunX > W / 2 ? -1 : 1; // shadows fall away from the Sun
   const trail = Array.from({ length: 48 }, (_, k) => (hour - 47 + k + loopH) % loopH);
 
   return (
-    <div className="relative">
+    <div data-theme="dark" className="relative bg-bg text-text">
       <div className="relative h-[300px] overflow-hidden sm:h-[420px]">
         <svg
           viewBox={`0 0 ${W} ${H}`}
@@ -82,9 +109,39 @@ export function HeroSky() {
               <stop offset="1" stopColor={colors.sun} stopOpacity="0" />
             </radialGradient>
             <linearGradient id="hero-ground" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#141c33" />
-              <stop offset="1" stopColor="#070b14" />
+              <stop offset="0" stopColor={lit ? "#1b2440" : "#0c1220"} style={{ transition: "stop-color 0.8s" }} />
+              <stop offset="1" stopColor="#05080f" />
             </linearGradient>
+            <linearGradient id="hero-haze" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#3a4a78" />
+              <stop offset="1" stopColor="#141c33" stopOpacity="0" />
+            </linearGradient>
+            {/* Warm light on the slopes that face the Sun */}
+            <radialGradient id="hero-slope" gradientUnits="userSpaceOnUse" cx={sunX} cy={ridgeAtSun} r={520}>
+              <stop offset="0" stopColor={colors.sun} stopOpacity={lit ? 0.32 : 0} />
+              <stop offset="0.5" stopColor={colors.sun} stopOpacity={lit ? 0.08 : 0} />
+              <stop offset="1" stopColor={colors.sun} stopOpacity="0" />
+            </radialGradient>
+            {/* Long shadow: the ground darkens away from the Sun */}
+            <linearGradient id="hero-shadow" gradientUnits="userSpaceOnUse" x1={sunX} y1={0} x2={sunX + away * W * 0.7} y2={0}>
+              <stop offset="0" stopColor="#000" stopOpacity="0" />
+              <stop offset="1" stopColor="#000" stopOpacity={lit ? 0.55 : 0.35} />
+            </linearGradient>
+            <linearGradient id="hero-lander-shadow" x1={away > 0 ? 0 : 1} y1="0" x2={away > 0 ? 1 : 0} y2="0">
+              <stop offset="0" stopColor="#000" stopOpacity="0.6" />
+              <stop offset="1" stopColor="#000" stopOpacity="0" />
+            </linearGradient>
+            <pattern id="hero-grain" width={96} height={96} patternUnits="userSpaceOnUse">
+              {GRAIN.map((g, i) => (
+                <circle key={i} cx={g.cx} cy={g.cy} r={g.r} fill={g.light ? "#9aa6c4" : "#000"} opacity={g.light ? 0.18 : 0.35} />
+              ))}
+            </pattern>
+            <clipPath id="hero-ground-clip">
+              <path d={`${ridge} L${W} ${H} L0 ${H} Z`} />
+            </clipPath>
+            <filter id="hero-rim" x="-5%" y="-50%" width="110%" height="200%">
+              <feGaussianBlur stdDeviation="3" />
+            </filter>
           </defs>
 
           <rect width={W} height={H} fill="url(#hero-sky)" />
@@ -93,7 +150,12 @@ export function HeroSky() {
           ))}
           <rect width={W} height={H} fill="url(#hero-sun)" />
 
-          {/* Sun path over the last two days */}
+          {/* Depth: two faint, hazy copies of the real ridge read as distant ranges */}
+          {farRidges.map((d, i) => (
+            <path key={i} d={`${d} L${W} ${H} L0 ${H} Z`} fill="url(#hero-haze)" opacity={i === 0 ? 0.35 : 0.55} />
+          ))}
+
+          {/* Sun path over the last two days, the Sun and Earth (behind the real ridge, in front of the haze) */}
           {trail.map((h, k) => (
             <circle key={k} cx={x(site.sunAz[h])} cy={y(site.sunEl[h])} r={2} fill={colors.sun} opacity={(k / 48) * 0.5} />
           ))}
@@ -101,25 +163,37 @@ export function HeroSky() {
           <circle cx={x(site.earthAz[hour])} cy={y(site.earthEl[hour])} r={16} fill={colors.earth} opacity={0.25} />
           <circle cx={x(site.earthAz[hour])} cy={y(site.earthEl[hour])} r={9} fill={colors.earth} />
 
-          {/* Mountains: the ridge glows when sunlight reaches the lander */}
+          {/* The real ridge (NASA LOLA horizon): rock fill, grain, sunlit slopes and long shadow */}
           <path d={`${ridge} L${W} ${H} L0 ${H} Z`} fill="url(#hero-ground)" />
-          <path
-            d={ridge}
-            fill="none"
-            stroke={lit ? colors.sun : colors.line}
-            strokeWidth={2}
-            opacity={0.9}
-            style={{ transition: "stroke 0.6s" }}
-          />
-          <path d={`M0 ${H - 40} Q ${W * 0.25} ${H - 70} ${W * 0.5} ${H - 52} T ${W} ${H - 48} V ${H} H 0 Z`} fill="#060a13" />
-
-          {/* Lander */}
-          <g transform={`translate(${W / 2} ${H - 58})`}>
-            <rect x={-18} y={-16} width={36} height={16} rx={3} fill="#cbd5e1" />
-            <rect x={-40} y={-30} width={22} height={9} fill={lit ? colors.accentSoft : colors.accent} transform="rotate(-14 -29 -26)" />
-            <rect x={18} y={-30} width={22} height={9} fill={lit ? colors.accentSoft : colors.accent} transform="rotate(14 29 -26)" />
-            <path d="M-13 0 L-22 12 M13 0 L22 12" stroke="#cbd5e1" strokeWidth={3} />
+          <g clipPath="url(#hero-ground-clip)">
+            <rect width={W} height={H} fill="url(#hero-grain)" />
+            <rect width={W} height={H} fill="url(#hero-slope)" />
+            <rect width={W} height={H} fill="url(#hero-shadow)" />
           </g>
+
+          {/* Rim light: a bright edge with a soft glow when sunlit, almost black when dark */}
+          {lit && <path d={ridge} fill="none" stroke={colors.sun} strokeWidth={5} opacity={0.45} filter="url(#hero-rim)" />}
+          <path d={ridge} fill="none" stroke={lit ? "#ffd58a" : "#0a0f1c"} strokeWidth={lit ? 1.6 : 1.5} style={{ transition: "stroke 0.6s" }} />
+
+          {/* Foreground ground and the lander's long shadow, pointing away from the Sun */}
+          <path d={`M0 ${H - 40} Q ${W * 0.25} ${H - 70} ${W * 0.5} ${H - 52} T ${W} ${H - 48} V ${H} H 0 Z`} fill="#060a13" />
+          {lit && (
+            <polygon
+              points={`${W / 2},${H - 48} ${W / 2},${H - 36} ${W / 2 + away * 460},${H - 30} ${W / 2 + away * 440},${H - 46}`}
+              fill="url(#hero-lander-shadow)"
+            />
+          )}
+
+          {/* Lander: NASA Altair (web/public/Altair.svg), sitting on the foreground; glows when the Sun reaches it */}
+          <image
+            href={`${import.meta.env.BASE_URL}Altair.svg`}
+            x={W / 2 - 60}
+            y={H - 150}
+            width={120}
+            height={110}
+            preserveAspectRatio="xMidYMax meet"
+            style={{ filter: lit ? "drop-shadow(0 0 10px rgba(245,165,36,0.55))" : "none", transition: "filter 0.6s" }}
+          />
 
           {["N", "E", "S", "W"].map((l, i) => (
             <text key={l} x={x(i * 90) + 10} y={H - 12} fontSize={14} fill={colors.muted}>

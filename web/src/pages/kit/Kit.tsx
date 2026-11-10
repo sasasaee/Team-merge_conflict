@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Gauge } from "lucide-react";
-import { Badge, Button, Panel, PanelSkeleton, Select, Slider, Skeleton, StatTile, buttonClass, colors, type Tone } from "@/ui";
+import { Badge, Button, PALETTE, Panel, PanelSkeleton, Select, Slider, Skeleton, StatTile, buttonClass, colors, type Tone } from "@/ui";
 
 // UI kit: every shared piece on one page, so the team can copy the right one.
 // Open it at #/kit. Not linked in the top menu on purpose.
@@ -64,14 +64,14 @@ export function Kit() {
         </p>
       </header>
 
-      <Section title="Colours" note="Defined once in app/styles.css (@theme). ui/theme.ts mirrors them for SVG and charts.">
+      <Section title="Colours" note="Defined once in app/styles.css (@theme, plus a light-theme override). ui/theme.ts points SVG and charts at the same tokens.">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {TOKENS.map((t) => (
             <div key={t.name} className="overflow-hidden rounded-xl border border-line">
               <div className="h-16" style={{ backgroundColor: colors[t.name] }} />
               <div className="space-y-1 bg-surface p-3 text-sm">
                 <div className="font-semibold">{t.cls}</div>
-                <div className="num text-xs text-muted">{colors[t.name]}</div>
+                <div className="num text-xs text-muted">dark {PALETTE[t.name].dark} / light {PALETTE[t.name].light}</div>
                 <div className="text-xs text-text/70">{t.use}</div>
                 <Code>{`bg-${t.cls} text-${t.cls}`}</Code>
               </div>
@@ -170,7 +170,7 @@ export function Kit() {
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-text/80">
           <li>Text contrast at least 4.5:1. Use text-accent-soft, never text-accent, for accent-coloured text on dark backgrounds.</li>
           <li>Every input has a visible label or an aria-label.</li>
-          <li>Everything works with the keyboard: Tab to move, arrow keys on sliders. A purple focus ring shows where you are.</li>
+          <li>Everything works with the keyboard: Tab to move, arrow keys on sliders. A teal focus ring shows where you are.</li>
           <li>Icon-only buttons have an aria-label (for example the play and remove buttons).</li>
           <li>Animations stop when the operating system asks for reduced motion.</li>
         </ul>

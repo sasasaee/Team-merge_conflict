@@ -1,5 +1,5 @@
 // Site data. Real NASA-based JSON (web/public/data/<id>.json) when all sites load, otherwise the sample data below.
-import { siteDataFromFile, withHorizon } from "./realSites";
+import { explainSiteFile, siteDataFromFile, withHorizon, type SiteFile } from "./realSites";
 import type { SiteData } from "./types";
 
 // Number of hours the site arrays hold: 672 (28 days) for the sample data, the length of the real files otherwise
@@ -33,23 +33,51 @@ let real: SiteData[] | null = null;
 
 export const usingRealData = () => real !== null;
 
-// Call once before rendering. All-or-nothing: if any site file is missing or invalid, every site keeps the sample data.
+// What went wrong while loading the real data, per site: the cause and how to fix it. Empty when all files loaded.
+export type DataProblem = { site: string; file: string; cause: string; fix: string };
+let problems: DataProblem[] = [];
+export const dataProblems = () => problems;
+
+const PIPELINE_FIX = "Run pipeline/run_all.bat again (it writes web/public/data/<site>.json), then reload the page.";
+
+async function loadOne(baseUrl: string, id: string, name: string): Promise<SiteData | DataProblem> {
+  const file = `web/public/data/${id}.json`;
+  let r: Response;
+  try {
+    r = await fetch(`${baseUrl}data/${id}.json`);
+  } catch {
+    return { site: name, file, cause: "The browser could not reach the server to download the file.", fix: "Check that pnpm dev (or the live site) is running and you are online, then reload." };
+  }
+  if (r.status === 404) return { site: name, file, cause: "The file does not exist.", fix: `Add ${file}. ${PIPELINE_FIX}` };
+  if (!r.ok) return { site: name, file, cause: `The server answered ${r.status} ${r.statusText}.`, fix: "Reload the page. If it keeps happening, restart pnpm dev." };
+  let json: SiteFile;
+  try {
+    json = await r.json();
+  } catch {
+    return { site: name, file, cause: "The file is not valid JSON (it may be cut off or half-written).", fix: PIPELINE_FIX };
+  }
+  const why = explainSiteFile(json);
+  if (why) return { site: name, file, cause: `The file is in the wrong format: ${why}.`, fix: `${PIPELINE_FIX} The expected format is in docs/METHOD.md.` };
+  return siteDataFromFile(json)!;
+}
+
+// Call once before rendering. All-or-nothing: if any site file is missing or invalid, every site keeps the sample data,
+// and dataProblems() says which files failed, why, and how to fix them.
 export async function loadRealSites(baseUrl = "/"): Promise<boolean> {
   try {
-    const all = await Promise.all(
-      SITES.map(async (s) => {
-        const r = await fetch(`${baseUrl}data/${s.id}.json`);
-        return r.ok ? siteDataFromFile(await r.json()) : null;
-      }),
-    );
-    if (all.some((x) => x === null)) throw new Error("a site file is missing or invalid");
+    const all = await Promise.all(SITES.map((s) => loadOne(baseUrl, s.id, s.name)));
+    problems = all.filter((x): x is DataProblem => "cause" in x);
+    if (problems.length) throw new Error(`${problems.length} site file(s) could not be used`);
     real = all as SiteData[];
     HOURS = Math.min(...real.map((x) => x.lit.length));
     cache.clear();
     moved.clear();
     return true;
   } catch (e) {
-    console.warn("Real site data not loaded, using sample data:", e);
+    if (!problems.length) {
+      problems = [{ site: "All sites", file: "web/public/data", cause: `Unexpected error: ${e instanceof Error ? e.message : String(e)}.`, fix: "Reload the page. If it keeps happening, send this message to the team." }];
+    }
+    console.warn("Real site data not loaded, using sample data:", problems);
     real = null;
     HOURS = 24 * 28;
     return false;

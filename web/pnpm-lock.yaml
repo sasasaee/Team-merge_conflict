@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@rive-app/canvas':
+        specifier: 2.45.1
+        version: 2.45.1
+      '@rive-app/react-canvas':
+        specifier: 4.37.1
+        version: 4.37.1(react@19.3.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -116,6 +122,14 @@ packages:
         optional: true
       react-redux:
         optional: true
+
+  '@rive-app/canvas@2.45.1':
+    resolution: {integrity: sha512-VWOO1hHCMB3YKp3L2R1FqfobtreoAnMzpen9ngxTn6mNZj4KJEOW6lF7RhuVQkspN4t7BUCsGzBnEpZOFUHvyw==}
+
+  '@rive-app/react-canvas@4.37.1':
+    resolution: {integrity: sha512-gA50ajL3igvr192QOtafRkRP9gcBDTN7hp3s90SA7q1t0T3pjXA3T9j7RDKaKM3wt7O0Vt30rPwiuH6EqfGv+A==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0
 
   '@rolldown/binding-android-arm-eabi@1.2.16':
     resolution: {integrity: sha512-ia3DwAs0OsMGS7+IConptSiyk9pEXkOx/AbJ2n/lAGxH3QkWQus1t8d7gnAT38FCU2sQu8lUbeR6AiZFv4JxaA==}
@@ -1135,6 +1149,13 @@ snapshots:
     optionalDependencies:
       react: 19.3.1
       react-redux: 9.3.1(@types/react@19.3.0)(react@19.3.1)(redux@5.0.1)
+
+  '@rive-app/canvas@2.45.1': {}
+
+  '@rive-app/react-canvas@4.37.1(react@19.3.1)':
+    dependencies:
+      '@rive-app/canvas': 2.45.1
+      react: 19.3.1
 
   '@rolldown/binding-android-arm-eabi@1.2.16':
     optional: true

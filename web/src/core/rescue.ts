@@ -43,14 +43,28 @@ export type RescueState = {
   log: LogLine[];
 };
 
-// The game starts 3 hours before the next sunset after the (possibly delayed) landing
+// The game starts 3 hours before the longest night in the month after the (possibly delayed) landing,
+// so every site gets a real challenge (a short night is too easy to survive, a long one needs good moves).
 function findSunset(params: MissionParams, crisis: Crisis) {
   const site = getSite(params.siteIdx);
   const from = params.delayH + crisis.delayH;
-  for (let k = 1; k < 24 * 28; k++) {
-    if (site.lit[wrapHour(from + k - 1)] && !site.lit[wrapHour(from + k)]) return from + k - 3;
+  const window = 24 * 28;
+  let bestStart = -1;
+  let bestLen = 0;
+  let runStart = -1;
+  for (let k = 1; k <= window; k++) {
+    const dark = !site.lit[wrapHour(from + k)];
+    if (dark && runStart < 0 && site.lit[wrapHour(from + k - 1)]) runStart = k;
+    if ((!dark || k === window) && runStart >= 0) {
+      const len = (dark ? k + 1 : k) - runStart;
+      if (len > bestLen) {
+        bestLen = len;
+        bestStart = runStart;
+      }
+      runStart = -1;
+    }
   }
-  return from;
+  return bestStart > 0 ? from + bestStart - 3 : from;
 }
 
 export function startRescue(crisis: Crisis, params: MissionParams): RescueState {

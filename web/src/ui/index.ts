@@ -8,5 +8,5 @@ export { Select } from "./Select";
 export { Button, buttonClass, type ButtonSize, type ButtonVariant } from "./Button";
 export { NavBar } from "./NavBar";
 export { PanelSkeleton, Skeleton } from "./Skeleton";
-export { colors, toneBg, toneText, type Tone } from "./theme";
+export { PALETTE, colors, toneBg, toneText, type Tone } from "./theme";
 export type { Block } from "./block";

@@ -11,6 +11,12 @@
       rel="stylesheet"
     />
     <title>MoonScope</title>
+    <script>
+      // Apply the saved theme before the first paint, so there is no flash of the wrong colours
+      try {
+        if (localStorage.getItem("moonscope-theme") === "light") document.documentElement.dataset.theme = "light";
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

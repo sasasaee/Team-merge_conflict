@@ -36,6 +36,18 @@ export function siteDataFromFile(f: SiteFile): SiteData | null {
   return SiteDataSchema.safeParse(d).success ? d : null;
 }
 
+// Why a site file cannot be used (null = it is fine). Same checks as siteDataFromFile, in words a person can act on.
+export function explainSiteFile(f: SiteFile): string | null {
+  if (!f || typeof f !== "object") return "the file is not a JSON object";
+  const missing = (["sun_az", "sun_el", "earth_az", "earth_el", "grid"] as const).filter((k) => !Array.isArray(f[k]));
+  if (missing.length) return `it has no ${missing.join(", ")} field${missing.length > 1 ? "s" : ""}`;
+  if (!f.grid!.some((g) => g.dx_km === 0 && g.dy_km === 0)) return "its grid has no centre point (dx_km 0, dy_km 0)";
+  const n = Math.min(f.sun_az!.length, f.sun_el!.length, f.earth_az!.length, f.earth_el!.length);
+  if (n < MIN_REAL_HOURS) return `it holds only ${n} hours; at least ${MIN_REAL_HOURS} (28 days) are needed`;
+  if (siteDataFromFile(f) === null) return "some values have the wrong type or length (for example a horizon without 360 numbers)";
+  return null;
+}
+
 // Same Sun and Earth positions, different mountains: rebuilds the lit and Earth-link arrays for another horizon.
 // Used for the real site (centre horizon) and for the "Move N km" what-ifs (a nearby grid point).
 export function withHorizon(base: SiteData, horizon: number[]): SiteData {

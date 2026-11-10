@@ -32,7 +32,7 @@ export function LocalSky() {
 
   return (
     <div className="flex h-full flex-col items-center gap-3">
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-[320px]" role="img" aria-label="Local sky map">
+      <svg data-theme="dark" viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full max-w-[320px]" role="img" aria-label="Local sky map">
         <defs>
           <radialGradient id="sky">
             <stop offset="0%" stopColor="#14203a" />
