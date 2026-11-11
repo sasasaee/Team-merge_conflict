@@ -89,7 +89,20 @@ How to read it:
 **Direct comparison with NASA's illumination maps (PGDA product 69, Mazarico et al. 2011).** These are 18.6-year averages of the Sun's visibility (and of Earth's visibility) at 60 to 240 m per pixel. `pipeline/compare_nasa.py` reads them at each of our points. NASA counts Earth as visible if any part of its disc is above the horizon, so the Earth column compares with our margin above 0 degrees, not the stricter 2.5 degree rule.
 
 <!-- NASA69-START -->
-Not run yet. Download `AVGVISIB_75S_120M_201608.TIF` (and optionally `AVGVISIB_75S_120M_201608_EARTH.TIF`) from https://pgda.gsfc.nasa.gov/products/69 and run `python pipeline/compare_nasa.py --sun <file> --earth <file> --data web/public/data --doc docs/METHOD.md`.
+| Site | Ours: sunlit (1 yr) | NASA: at our point | NASA: mean within 1 km | NASA: max within 1 km | Ours minus NASA (point) | Ours: Earth visible (1 yr) | NASA Earth: at our point |
+|---|---|---|---|---|---|---|---|
+| de Gerlache Rim 2 | 64% | 57% | 45% | 74% | +6 points | 58% | 62% |
+| Haworth | 63% | 60% | 32% | 63% | +3 points | 56% | 61% |
+| Malapert Massif | 84% | 85% | 44% | 85% | -0 points | 100% | 71% |
+| Mons Mouton Plateau | 51% | 50% | 41% | 54% | +1 points | 100% | 100% |
+| Mons Mouton | 48% | 49% | 35% | 54% | -1 points | 100% | 100% |
+| Nobile Rim 1 | 63% | 62% | 43% | 68% | +1 points | 76% | 86% |
+| Nobile Rim 2 | 52% | 54% | 42% | 54% | -2 points | 74% | 80% |
+| Peak near Cabeus B | 45% | 40% | 37% | 42% | +6 points | 64% | 57% |
+| Slater Plain | 61% | 66% | 37% | 66% | -5 points | 45% | 49% |
+
+Across 9 sites: mean absolute difference 3 points at the exact point and 19 points against the 1 km mean; correlation 0.43 (1.0 = same ranking of sites).
+Sites that differ from NASA by more than 10 points at the exact point: none.
 <!-- NASA69-END -->
 
 This is a plausibility check, not a point-by-point validation of every number. The strongest further test would be to run the pipeline at the coordinates of the Shackleton-de Gerlache ridge point in Glaeser et al. and compare with their published value for the same place. We have not done that.

@@ -29,6 +29,26 @@ import terrain as T
 START, END = "<!-- NASA69-START -->", "<!-- NASA69-END -->"
 
 
+def map_units(ds):
+    """(factor to percent, note, coarse array). Decides from the scale metadata, dtype and the map's maximum, and refuses to guess."""
+    scale = ds.scales[0] if ds.scales else 1.0
+    offset = ds.offsets[0] if ds.offsets else 0.0
+    step = max(1, int(max(ds.shape) // 1500))
+    coarse = ds.read(1, out_shape=(ds.shape[0] // step, ds.shape[1] // step), out_dtype="float32") * scale + offset
+    if ds.nodata is not None and not np.isnan(ds.nodata):
+        coarse[coarse == ds.nodata * scale + offset] = np.nan
+    vmax = float(np.nanmax(coarse))
+    if vmax <= 1.5:
+        return 100.0, f"max value {vmax:.3f}: treated as a 0-1 fraction, multiplied by 100", coarse
+    if vmax <= 100.5:
+        return 1.0, f"max value {vmax:.1f}: treated as percent", coarse
+    if ds.dtypes[0] == "uint8" and vmax <= 255.5:
+        return 100.0 / 255.0, f"8-bit map, max value {vmax:.0f}: rescaled from 0-255 to percent", coarse
+    if vmax <= 10050:
+        return 0.01, f"max value {vmax:.0f}: treated as hundredths of a percent", coarse
+    raise ValueError(f"cannot tell the units of this map (maximum value {vmax}); check the file's description on the PGDA page")
+
+
 def sample_map(path, lat: float, lon: float, half_km: float = 1.0):
     """(value at the point, mean within half_km, max within half_km) in percent, or None outside the map / on no-data."""
     import rasterio
@@ -39,11 +59,7 @@ def sample_map(path, lat: float, lon: float, half_km: float = 1.0):
         x, y = T.site_xy(lat, lon, crs)
         scale = ds.scales[0] if ds.scales else 1.0
         offset = ds.offsets[0] if ds.offsets else 0.0
-        step = max(1, int(max(ds.shape) // 1500))                       # decimated read to find the map's units
-        coarse = ds.read(1, out_shape=(ds.shape[0] // step, ds.shape[1] // step), out_dtype="float32") * scale + offset
-        if ds.nodata is not None and not np.isnan(ds.nodata):
-            coarse[coarse == ds.nodata * scale + offset] = np.nan
-        factor = 100.0 if np.nanmax(coarse) <= 1.5 else 1.0               # 0-1 fractions become percent
+        factor, _, _ = map_units(ds)
         row, col = ds.index(x, y)
         r = max(1, int(round(half_km * 1000 / abs(ds.transform.a))))
         if not (0 <= row < ds.height and 0 <= col < ds.width):
@@ -55,7 +71,10 @@ def sample_map(path, lat: float, lon: float, half_km: float = 1.0):
         centre = win[r, r]
         if np.isnan(centre):
             return None, factor
-        return (float(centre) * factor, float(np.nanmean(win)) * factor, float(np.nanmax(win)) * factor), factor
+        vals = (float(centre) * factor, float(np.nanmean(win)) * factor, float(np.nanmax(win)) * factor)
+        if not (-0.5 <= vals[0] <= 100.5):
+            raise ValueError(f"NASA value {vals[0]:.1f} at ({lat}, {lon}) is not a percentage; the units are not what the script assumed")
+        return vals, factor
 
 
 def our_numbers(path: Path) -> dict:
@@ -75,17 +94,24 @@ def main() -> None:
     ap.add_argument("--window-km", type=float, default=1.0)
     a = ap.parse_args()
 
+    import rasterio
+    for label, path in (("Sun", a.sun), ("Earth", a.earth)):
+        if path:
+            with rasterio.open(path) as ds:
+                print(f"{label} map {Path(path).name}: {ds.shape[1]} x {ds.shape[0]} px, {abs(ds.transform.a):.0f} m/px, crs {'present' if ds.crs else 'MISSING (assuming south polar stereographic)'}, {map_units(ds)[1]}")
     files = [p for p in sorted(Path(a.data).glob("*.json")) if not p.name.startswith("sample-")]
-    head = "| Site | Ours: sunlit (1 yr) | NASA: at our point | NASA: mean within %.0f km | NASA: max within %.0f km |" % (a.window_km, a.window_km)
-    sep = "|---|---|---|---|---|"
+    head = "| Site | Ours: sunlit (1 yr) | NASA: at our point | NASA: mean within %.0f km | NASA: max within %.0f km | Ours minus NASA (point) |" % (a.window_km, a.window_km)
+    sep = "|---|---|---|---|---|---|"
     if a.earth:
         head += " Ours: Earth visible (1 yr) | NASA Earth: at our point |"
         sep += "---|---|"
-    lines, pairs = [head, sep], []
+    lines, pairs, far = [head, sep], [], []
     for p in files:
         o = our_numbers(p)
         s, _ = sample_map(a.sun, o["lat"], o["lon"], a.window_km)
-        row = f"| {o['name']} | {o['lit']:.0f}% | " + (f"{s[0]:.0f}% | {s[1]:.0f}% | {s[2]:.0f}% |" if s else "outside map | - | - |")
+        row = f"| {o['name']} | {o['lit']:.0f}% | " + (f"{s[0]:.0f}% | {s[1]:.0f}% | {s[2]:.0f}% | {o['lit'] - s[0]:+.0f} points |" if s else "outside map | - | - | - |")
+        if s and abs(o["lit"] - s[0]) > 10:
+            far.append(f"{o['name']} ({o['lit'] - s[0]:+.0f})")
         if a.earth:
             e, _ = sample_map(a.earth, o["lat"], o["lon"], a.window_km)
             row += f" {o['vis']:.0f}% | " + (f"{e[0]:.0f}% |" if e else "outside map |")
@@ -98,7 +124,8 @@ def main() -> None:
         summary += [f"Across {len(pairs)} sites: mean absolute difference {np.abs(ours - pt).mean():.0f} points at the exact point and "
                     f"{np.abs(ours - win).mean():.0f} points against the {a.window_km:.0f} km mean; correlation {np.corrcoef(ours, win)[0, 1]:.2f} "
                     f"(1.0 = same ranking of sites)."]
-    block = "\n".join(lines + ([""] + summary if summary else []))
+    summary.append("Sites that differ from NASA by more than 10 points at the exact point: " + (", ".join(far) if far else "none") + ".")
+    block = "\n".join(lines + [""] + summary)
     print(block)
     if a.doc:
         doc = Path(a.doc)
