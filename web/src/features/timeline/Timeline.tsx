@@ -45,7 +45,7 @@ export function Timeline() {
               </g>
             );
           })}
-          <rect x={timeH * w - 1.5} y={0} width={3} height={60} fill="#fff" />
+          <rect x={timeH * w - 1.5} y={0} width={3} height={60} fill={colors.text} />
         </svg>
         <span>Earth link</span>
       </div>

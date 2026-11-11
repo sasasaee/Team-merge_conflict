@@ -5,6 +5,8 @@ import { Select } from "@/ui";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const COLOR = { ok: "bg-ok/25 border-ok/50", warn: "bg-warn/25 border-warn/50", fail: "bg-fail/25 border-fail/50" } as const;
+// Small dot keeps the verdict visible while a day is hovered or selected (both turn the cell teal)
+const DOT = { ok: "bg-ok", warn: "bg-warn", fail: "bg-fail" } as const;
 
 export function Calendar() {
   const params = useMission((s) => s.params);
@@ -69,23 +71,27 @@ export function Calendar() {
             <div key={w} className="pb-1 text-center text-xs text-muted">{w}</div>
           ))}
           {Array.from({ length: lead }, (_, i) => <div key={`e${i}`} />)}
-          {days.map((x) => (
-            <button
-              key={x.d}
-              type="button"
-              onClick={() => pick(x.d)}
-              title={`${landingLabel(x.d * 24)}: ${VERDICT_LABEL[x.verdict]}, lowest battery ${x.minSoc.toFixed(0)} kWh`}
-              className={clsx(
-                "h-14 rounded-lg border p-1.5 text-left transition hover:scale-105 sm:h-16 sm:p-2",
-                COLOR[x.verdict],
-                params.delayH === x.d * 24 && "ring-2 ring-accent",
-                firstFail?.d === x.d && "ring-2 ring-fail",
-              )}
-            >
-              <div className="num text-sm font-semibold">{x.date.getUTCDate()}</div>
-              <div className="hidden text-[10px] text-text/70 sm:block">{x.date.toLocaleString("en-GB", { month: "short", timeZone: "UTC" })}</div>
-            </button>
-          ))}
+          {days.map((x) => {
+            const selected = params.delayH === x.d * 24;
+            return (
+              <button
+                key={x.d}
+                type="button"
+                onClick={() => pick(x.d)}
+                aria-pressed={selected}
+                title={`${landingLabel(x.d * 24)}: ${VERDICT_LABEL[x.verdict]}, lowest battery ${x.minSoc.toFixed(0)} kWh`}
+                className={clsx(
+                  "relative h-14 rounded-lg border p-1.5 text-left transition hover:scale-105 sm:h-16 sm:p-2",
+                  COLOR[x.verdict],
+                  !selected && firstFail?.d === x.d && "ring-2 ring-fail",
+                )}
+              >
+                <div className="num text-sm font-semibold">{x.date.getUTCDate()}</div>
+                <div className="hidden text-[10px] opacity-75 sm:block">{x.date.toLocaleString("en-GB", { month: "short", timeZone: "UTC" })}</div>
+                <i aria-hidden className={clsx("absolute top-1.5 right-1.5 size-2 rounded-full", DOT[x.verdict], selected && "ring-1 ring-white")} />
+              </button>
+            );
+          })}
         </div>
       </section>
     </div>

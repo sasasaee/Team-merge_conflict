@@ -20,7 +20,7 @@ export function Panorama({ siteIdx, hour, horizonDrop = 0 }: Props) {
 
   return (
     <div className="space-y-2">
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-40 w-full rounded-xl" preserveAspectRatio="none" role="img" aria-label="360 degree view from the lander">
+      <svg data-theme="dark" viewBox={`0 0 ${W} ${H}`} className="h-40 w-full rounded-xl" preserveAspectRatio="none" role="img" aria-label="360 degree view from the lander">
         <defs>
           <linearGradient id="pano-sky" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#070b14" />

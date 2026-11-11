@@ -11,9 +11,15 @@ export function Alerts() {
   const listRef = useRef<HTMLOListElement>(null);
   const nextIdx = events.findIndex((e) => e.hour > timeH);
 
+  // Keep the next event in view by scrolling the list itself (never the page)
   useEffect(() => {
-    const el = listRef.current?.querySelector<HTMLElement>("[data-next='true']");
-    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const list = listRef.current;
+    const el = list?.querySelector<HTMLElement>("[data-next='true']");
+    if (!list || !el) return;
+    const top = el.offsetTop - list.offsetTop;
+    if (top < list.scrollTop || top + el.offsetHeight > list.scrollTop + list.clientHeight) {
+      list.scrollTo({ top: Math.max(0, top - list.clientHeight / 2), behavior: "smooth" });
+    }
   }, [nextIdx]);
 
   return (

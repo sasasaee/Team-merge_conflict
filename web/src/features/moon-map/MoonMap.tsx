@@ -27,6 +27,8 @@ export function MoonMap() {
               key={site.id}
               type="button"
               title={site.name}
+              aria-label={site.name}
+              aria-pressed={active}
               onClick={() => setParam("siteIdx", i)}
               className={clsx(
                 "absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/80 transition-all",
@@ -43,10 +45,11 @@ export function MoonMap() {
           <button
             key={site.id}
             type="button"
+            aria-pressed={i === params.siteIdx}
             onClick={() => setParam("siteIdx", i)}
             className={clsx(
               "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition",
-              i === params.siteIdx ? "border-accent bg-accent/15" : "border-line text-muted hover:text-text",
+              i === params.siteIdx ? "border-accent" : "border-line text-muted",
             )}
           >
             <i className="size-2 rounded-full" style={{ backgroundColor: colors[verdicts[i]] }} />
