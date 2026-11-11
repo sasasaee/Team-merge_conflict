@@ -85,6 +85,15 @@ def our_numbers(path: Path) -> dict:
     return {"name": d["name"], "lat": d["lat"], "lon": d["lon"], "lit": lit.mean() * 100, "vis": (margin > 0).mean() * 100}
 
 
+def stats_line(label: str, ours, nasa) -> str:
+    if not ours:
+        return f"{label}: no sites inside the map."
+    d = np.array(ours) - np.array(nasa)
+    r = np.corrcoef(ours, nasa)[0, 1] if len(ours) >= 3 and np.std(ours) > 0 and np.std(nasa) > 0 else float("nan")
+    return (f"{label}, exact point: mean absolute difference {np.abs(d).mean():.1f} points, "
+            f"{int((np.abs(d) <= 10).sum())} of {len(d)} sites within 10 points, correlation {r:.2f}.")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sun", required=True)
@@ -100,31 +109,41 @@ def main() -> None:
             with rasterio.open(path) as ds:
                 print(f"{label} map {Path(path).name}: {ds.shape[1]} x {ds.shape[0]} px, {abs(ds.transform.a):.0f} m/px, crs {'present' if ds.crs else 'MISSING (assuming south polar stereographic)'}, {map_units(ds)[1]}")
     files = [p for p in sorted(Path(a.data).glob("*.json")) if not p.name.startswith("sample-")]
-    head = "| Site | Ours: sunlit (1 yr) | NASA: at our point | NASA: mean within %.0f km | NASA: max within %.0f km | Ours minus NASA (point) |" % (a.window_km, a.window_km)
+    head = "| Site | Ours: sunlit (1 yr) | NASA: at our point | Ours minus NASA (point) | NASA: mean within %.0f km | NASA: max within %.0f km |" % (a.window_km, a.window_km)
     sep = "|---|---|---|---|---|---|"
     if a.earth:
-        head += " Ours: Earth visible (1 yr) | NASA Earth: at our point |"
-        sep += "---|---|"
-    lines, pairs, far = [head, sep], [], []
+        head += " Ours: Earth visible (1 yr) | NASA Earth: at our point | Ours minus NASA (Earth) |"
+        sep += "---|---|---|"
+    lines = [head, sep]
+    sun_o, sun_n, earth_o, earth_n, far_sun, far_earth = [], [], [], [], [], []
     for p in files:
         o = our_numbers(p)
         s, _ = sample_map(a.sun, o["lat"], o["lon"], a.window_km)
-        row = f"| {o['name']} | {o['lit']:.0f}% | " + (f"{s[0]:.0f}% | {s[1]:.0f}% | {s[2]:.0f}% | {o['lit'] - s[0]:+.0f} points |" if s else "outside map | - | - | - |")
-        if s and abs(o["lit"] - s[0]) > 10:
-            far.append(f"{o['name']} ({o['lit'] - s[0]:+.0f})")
+        if s:
+            row = f"| {o['name']} | {o['lit']:.0f}% | {s[0]:.0f}% | {o['lit'] - s[0]:+.0f} points | {s[1]:.0f}% | {s[2]:.0f}% |"
+            sun_o.append(o["lit"]); sun_n.append(s[0])
+            if abs(o["lit"] - s[0]) > 10:
+                far_sun.append(f"{o['name']} ({o['lit'] - s[0]:+.0f})")
+        else:
+            row = f"| {o['name']} | {o['lit']:.0f}% | outside map | - | - | - |"
         if a.earth:
             e, _ = sample_map(a.earth, o["lat"], o["lon"], a.window_km)
-            row += f" {o['vis']:.0f}% | " + (f"{e[0]:.0f}% |" if e else "outside map |")
+            if e:
+                row += f" {o['vis']:.0f}% | {e[0]:.0f}% | {o['vis'] - e[0]:+.0f} points |"
+                earth_o.append(o["vis"]); earth_n.append(e[0])
+                if abs(o["vis"] - e[0]) > 10:
+                    far_earth.append(f"{o['name']} ({o['vis'] - e[0]:+.0f})")
+            else:
+                row += f" {o['vis']:.0f}% | outside map | - |"
         lines.append(row)
-        if s:
-            pairs.append((o["lit"], s[0], s[1]))
-    summary = []
-    if len(pairs) >= 3:
-        ours, pt, win = (np.array(c) for c in zip(*pairs))
-        summary += [f"Across {len(pairs)} sites: mean absolute difference {np.abs(ours - pt).mean():.0f} points at the exact point and "
-                    f"{np.abs(ours - win).mean():.0f} points against the {a.window_km:.0f} km mean; correlation {np.corrcoef(ours, win)[0, 1]:.2f} "
-                    f"(1.0 = same ranking of sites)."]
-    summary.append("Sites that differ from NASA by more than 10 points at the exact point: " + (", ".join(far) if far else "none") + ".")
+    summary = [stats_line("Sun", sun_o, sun_n)]
+    if a.earth:
+        summary.append(stats_line("Earth", earth_o, earth_n))
+    summary.append("More than 10 points apart at the exact point. Sun: " + (", ".join(far_sun) or "none")
+                   + (". Earth: " + (", ".join(far_earth) or "none") if a.earth else "") + ".")
+    summary.append(f"The NASA mean and max within {a.window_km:.0f} km are shown for context only: each of our points is the best-lit spot found in its "
+                   "region, so it sits above the average of its surroundings (illumination changes a lot over a few hundred metres). "
+                   "The exact-point columns are the fair comparison.")
     block = "\n".join(lines + [""] + summary)
     print(block)
     if a.doc:

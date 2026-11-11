@@ -61,3 +61,22 @@ def test_units_unknown_refuses_to_guess(tmp_path):
     make_map(tmp_path / "m.tif", -86.0, 3.0, 50000, dtype="int32")
     with pytest.raises(ValueError):
         C.sample_map(tmp_path / "m.tif", -86.0, 3.0)
+
+
+def test_whole_run_reports_exact_point_stats_and_flags_big_gaps(tmp_path, monkeypatch, capsys):
+    import json
+    import sys
+
+    make_map(tmp_path / "sun.tif", -86.0, 3.0, 70.0)        # NASA says 70%
+    make_map(tmp_path / "earth.tif", -86.0, 3.0, 100.0)     # NASA says 100%
+    d = tmp_path / "data"; d.mkdir()
+    json.dump({"id": "x", "name": "Test Site", "lat": -86.0, "lon": 3.0,
+               "grid": [{"dx_km": 0, "dy_km": 0, "horizon": [0.0] * 360}],
+               "sun_az": [0.0] * 10, "sun_el": [1.0] * 10, "earth_az": [0.0] * 10, "earth_el": [5.0] * 10}, open(d / "x.json", "w"))
+    monkeypatch.setattr(sys, "argv", ["compare_nasa.py", "--sun", str(tmp_path / "sun.tif"), "--earth", str(tmp_path / "earth.tif"), "--data", str(d)])
+    C.main()
+    out = capsys.readouterr().out
+    assert "Test Site | 100% | 70% | +30 points" in out                    # ours always lit, NASA 70%
+    assert "More than 10 points apart at the exact point. Sun: Test Site (+30). Earth: none." in out
+    assert "Sun, exact point: mean absolute difference 30.0 points" in out
+    assert "correlation 0.4" not in out and "against the" not in out         # the misleading 1 km correlation is gone

@@ -89,23 +89,30 @@ How to read it:
 **Direct comparison with NASA's illumination maps (PGDA product 69, Mazarico et al. 2011).** These are 18.6-year averages of the Sun's visibility (and of Earth's visibility) at 60 to 240 m per pixel. `pipeline/compare_nasa.py` reads them at each of our points. NASA counts Earth as visible if any part of its disc is above the horizon, so the Earth column compares with our margin above 0 degrees, not the stricter 2.5 degree rule.
 
 <!-- NASA69-START -->
-| Site | Ours: sunlit (1 yr) | NASA: at our point | NASA: mean within 1 km | NASA: max within 1 km | Ours minus NASA (point) | Ours: Earth visible (1 yr) | NASA Earth: at our point |
-|---|---|---|---|---|---|---|---|
-| de Gerlache Rim 2 | 64% | 57% | 45% | 74% | +6 points | 58% | 62% |
-| Haworth | 63% | 60% | 32% | 63% | +3 points | 56% | 61% |
-| Malapert Massif | 84% | 85% | 44% | 85% | -0 points | 100% | 71% |
-| Mons Mouton Plateau | 51% | 50% | 41% | 54% | +1 points | 100% | 100% |
-| Mons Mouton | 48% | 49% | 35% | 54% | -1 points | 100% | 100% |
-| Nobile Rim 1 | 63% | 62% | 43% | 68% | +1 points | 76% | 86% |
-| Nobile Rim 2 | 52% | 54% | 42% | 54% | -2 points | 74% | 80% |
-| Peak near Cabeus B | 45% | 40% | 37% | 42% | +6 points | 64% | 57% |
-| Slater Plain | 61% | 66% | 37% | 66% | -5 points | 45% | 49% |
+| Site | Ours: sunlit (1 yr) | NASA: at our point | Ours minus NASA (point) | NASA: mean within 1 km | NASA: max within 1 km | Ours: Earth visible (1 yr) | NASA Earth: at our point | Ours minus NASA (Earth) |
+|---|---|---|---|---|---|---|---|---|
+| de Gerlache Rim 2 | 64% | 57% | +6 points | 45% | 74% | 58% | 62% | -3 points |
+| Haworth | 63% | 60% | +3 points | 32% | 63% | 56% | 61% | -5 points |
+| Malapert Massif | 84% | 85% | -0 points | 44% | 85% | 100% | 71% | +29 points |
+| Mons Mouton Plateau | 51% | 50% | +1 points | 41% | 54% | 100% | 100% | +0 points |
+| Mons Mouton | 48% | 49% | -1 points | 35% | 54% | 100% | 100% | +0 points |
+| Nobile Rim 1 | 63% | 62% | +1 points | 43% | 68% | 76% | 86% | -10 points |
+| Nobile Rim 2 | 52% | 54% | -2 points | 42% | 54% | 74% | 80% | -6 points |
+| Peak near Cabeus B | 45% | 40% | +6 points | 37% | 42% | 64% | 57% | +8 points |
+| Slater Plain | 61% | 66% | -5 points | 37% | 66% | 45% | 49% | -4 points |
 
-Across 9 sites: mean absolute difference 3 points at the exact point and 19 points against the 1 km mean; correlation 0.43 (1.0 = same ranking of sites).
-Sites that differ from NASA by more than 10 points at the exact point: none.
+Sun, exact point: mean absolute difference 2.7 points, 9 of 9 sites within 10 points, correlation 0.96.
+Earth, exact point: mean absolute difference 7.1 points, 8 of 9 sites within 10 points, correlation 0.84.
+More than 10 points apart at the exact point. Sun: none. Earth: Malapert Massif (+29).
+The NASA mean and max within 1 km are shown for context only: each of our points is the best-lit spot found in its region, so it sits above the average of its surroundings (illumination changes a lot over a few hundred metres). The exact-point columns are the fair comparison.
 <!-- NASA69-END -->
 
-This is a plausibility check, not a point-by-point validation of every number. The strongest further test would be to run the pipeline at the coordinates of the Shackleton-de Gerlache ridge point in Glaeser et al. and compare with their published value for the same place. We have not done that.
+What the comparison shows (figures from the run above, full-year data):
+
+- **Sunlight matches NASA.** At the exact point of every site, our one-year sunlit fraction is within 6 points of NASA's 18.6-year average (mean difference about 3 points; the largest gaps are de Gerlache Rim 2 and Peak near Cabeus B at +6 and Slater Plain at -5). Nothing in our pipeline was tuned or fitted to NASA's maps: we use LOLA terrain and our own Sun positions, and the point-selection step ranks candidates with our own model.
+- **Why NASA's 1 km mean is much lower.** Each of our points is the best-lit spot found in its region, so it sits above the average of its surroundings (for example Malapert: 84% at the point, 44% averaged over 1 km, NASA 85% at the same point). The exact-point columns are the fair comparison; the 1 km columns only show how local the bright spots are.
+- **Earth contact matches at 8 of 9 sites, with one clear exception.** Nobile Rim 1 is about 10 points lower than NASA (76% against 86%); every other site except Malapert is within 8 points. At **Malapert our Earth visibility is 100% while NASA's map says 71%**. We have not tested why. Possible reasons: (1) our horizon ignores terrain within 200 m of the lander and puts the lander 2 m above ground, while NASA's map is computed per 120 m pixel at ground level, so small summit features that block a low Earth are invisible to us; (2) NASA may average how much of Earth's disc is visible, while we count Earth as visible whenever its centre is above the ridge; (3) NASA averages 18.6 years and we cover one. Until this is tested, read our Malapert Earth figure as an upper bound.
+- **Limits of this test.** It compares one 120 m NASA pixel with one exact point of ours (we work at 20 m), one year with 18.6 years, and a Sun treated as a point with a Sun treated as a disc. Agreement within about 6 points under those differences is a good sign, not a proof that every number is right.
 
 ## 5. Choosing the site points
 
