@@ -51,13 +51,13 @@ What has been checked so far:
 
 | Check | Result |
 |---|---|
-| Georeferencing: DEM height at the starting points against NASA's region descriptions | Malapert +5.12 km, Mons Mouton +4.95 km, Nobile Rim 1 +6.07 km. Malapert and Mons Mouton agree with the roughly +5 km usually quoted for these massifs. Nobile Rim 1 is higher than the rough +3 km we expected; that reference was approximate and should be checked against a NASA source. |
+| Georeferencing: DEM height at the starting points against NASA's region descriptions | At the NASA region centres we start from: Malapert +4.80 km, Mons Mouton +5.04 km, Mons Mouton Plateau +5.29 km, Nobile Rim 1 +5.85 km, Nobile Rim 2 +0.91 km, Haworth +1.69 km, de Gerlache Rim 2 -0.30 km, Peak near Cabeus B -1.86 km, Slater Plain -0.37 km. Malapert and the two Mons Mouton regions agree within about 1 km with the roughly 5 km (Malapert) and 5 to 6 km (Mons Mouton) quoted for these massifs. We had expected about +3 km at Nobile Rim 1, but that figure may describe relief above its surroundings, not absolute height, so it is not a valid check. |
 | Projection: the DEM's CRS against the CRS the code assumes | Identical positions. |
 | Sun elevation range vs. physics | Sub-solar latitude stays within about +/-1.55 degrees (the Moon's axial tilt). The highest Sun at a site is about 91.5 degrees minus the site's southern latitude, e.g. 7.5 degrees at 84S. Our values stay at or below that ceiling (e.g. Mons Mouton at 84.4S: Sun up to 7.1 degrees over the year, right at the 7.1 degree ceiling). |
 | Earth libration | Sub-Earth point swings about +/-6.8 degrees in latitude and +/-7.8 degrees in longitude, matching the known libration of about +/-6.7 and +/-7.7 degrees. |
 | Horizon on flat noisy ground | Flat ground with 2 m of random noise gives a mean horizon of 0.3 degrees and no step-shaped plateaus (the old code: 2.8 degrees and plateaus up to 90 degrees wide). Tested in `test_terrain.py`. |
-| Code tests | 23 pytest tests pass (synthetic ridge with a known angle, wrap-around at north, near-field handling, DNA rules, ephemeris sanity, NASA-map reader). |
-| Python and TypeScript DNA agree | Identical on a synthetic site. |
+| Code tests | 30 pytest tests pass (synthetic ridge with a known angle, wrap-around at north, near-field handling, DNA rules, ephemeris sanity, NASA-map reader). |
+| Python and TypeScript DNA agree | Identical on a synthetic site, and the Shadow DNA cards match the JSON values at all 9 real sites. |
 | Sun/Earth sky against NASA SPICE (DE440 ephemeris and lunar principal-axis orientation, Atia's method) | At five sites over 74 days: Sun elevation within 0.002 degrees, Earth elevation within 0.003 degrees, azimuths within 0.004 degrees. An earlier version ignored the parallax of the site on the Moon's surface and put Earth 0.25 degrees too high; that was found by this comparison and fixed. |
 
 **Comparison with NASA's published values (T-30).** Sunlit and Earth-link fractions for each site, over the first 28 days (what the Shadow DNA page shows) and over the full year of data, with NASA's screening thresholds applied to the full-year figures. This block is rewritten from the site files by `pipeline/update_method.py` (run_all.bat does it), so it always matches the data in the repo:
@@ -86,17 +86,37 @@ How to read it:
 - **Why the Sun alone gives about 50%.** Over a year the Sun's elevation at a polar site averages about 0 degrees, so a site whose horizon sits near 0 degrees is lit about half the time. Only a point whose horizon is negative in the Sun's directions, a high peak looking down on its surroundings, can approach 80%.
 - **Why the numbers are not directly comparable.** NASA reports long-term averages over the 18.6-year lunar cycle at a stated height above ground; ours cover one year from a fixed date (1 March 2027) with the lander 2 m above ground, and treat the Sun as a point. The first 28 days differ from the full year by a few points because the Sun's path changes through the year.
 
-**Direct comparison with NASA's illumination maps (PGDA product 69, Mazarico et al. 2011).** These are 18.6-year averages of the Sun's visibility (and of Earth's visibility) at 60 to 240 m per pixel. `pipeline/compare_nasa.py` reads them at each of our points. NASA counts Earth as visible if any part of its disc is above the horizon, so the Earth column compares with our margin above 0 degrees, not the stricter 2.5 degree rule.
+**Direct comparison with NASA's illumination maps (PGDA product 69, Mazarico et al. 2011).** These are 18.6-year averages of the Sun's visibility (and of Earth's visibility) at 60 to 240 m per pixel. `pipeline/compare_nasa.py` reads them at each of our points. The PGDA page states that Earth is counted as visible if any part of its disc is unobscured, which is slightly more generous than our rule (disc centre above the ridge). The Earth column therefore compares with our margin above 0 degrees, not the stricter 2.5 degree reliable-link rule.
 
 <!-- NASA69-START -->
-Not run yet. Download `AVGVISIB_75S_120M_201608.TIF` (and optionally `AVGVISIB_75S_120M_201608_EARTH.TIF`) from https://pgda.gsfc.nasa.gov/products/69 and run `python pipeline/compare_nasa.py --sun <file> --earth <file> --data web/public/data --doc docs/METHOD.md`.
+| Site | Ours: sunlit (1 yr) | NASA: at our point | Ours minus NASA (point) | NASA: mean within 1 km | NASA: max within 1 km | Ours: Earth visible (1 yr) | NASA Earth: at our point | Ours minus NASA (Earth) |
+|---|---|---|---|---|---|---|---|---|
+| de Gerlache Rim 2 | 64% | 57% | +6 points | 45% | 74% | 58% | 62% | -3 points |
+| Haworth | 63% | 60% | +3 points | 32% | 63% | 56% | 61% | -5 points |
+| Malapert Massif | 84% | 85% | -0 points | 44% | 85% | 100% | 71% | +29 points |
+| Mons Mouton Plateau | 51% | 50% | +1 points | 41% | 54% | 100% | 100% | +0 points |
+| Mons Mouton | 48% | 49% | -1 points | 35% | 54% | 100% | 100% | +0 points |
+| Nobile Rim 1 | 63% | 62% | +1 points | 43% | 68% | 76% | 86% | -10 points |
+| Nobile Rim 2 | 52% | 54% | -2 points | 42% | 54% | 74% | 80% | -6 points |
+| Peak near Cabeus B | 45% | 40% | +6 points | 37% | 42% | 64% | 57% | +8 points |
+| Slater Plain | 61% | 66% | -5 points | 37% | 66% | 45% | 49% | -4 points |
+
+Sun, exact point: mean absolute difference 2.7 points, 9 of 9 sites within 10 points, correlation 0.96.
+Earth, exact point: mean absolute difference 7.1 points, 8 of 9 sites within 10 points, correlation 0.84.
+More than 10 points apart at the exact point. Sun: none. Earth: Malapert Massif (+29).
+The NASA mean and max within 1 km are shown for context only: each of our points is the best-lit spot found in its region, so it sits above the average of its surroundings (illumination changes a lot over a few hundred metres). The exact-point columns are the fair comparison.
 <!-- NASA69-END -->
 
-This is a plausibility check, not a point-by-point validation of every number. The strongest further test would be to run the pipeline at the coordinates of the Shackleton-de Gerlache ridge point in Glaeser et al. and compare with their published value for the same place. We have not done that.
+What the comparison shows (figures from the run above, full-year data):
+
+- **Sunlight matches NASA.** At the exact point of every site, our one-year sunlit fraction is within 6 points of NASA's 18.6-year average (mean difference about 3 points; the largest gaps are de Gerlache Rim 2 and Peak near Cabeus B at +6 and Slater Plain at -5). Nothing in our pipeline was tuned or fitted to NASA's maps: we use LOLA terrain and our own Sun positions, and the point-selection step ranks candidates with our own model.
+- **Why NASA's 1 km mean is much lower.** Each of our points is the best-lit spot found in its region, so it sits above the average of its surroundings (for example Malapert: 84% at the point, 44% averaged over 1 km, NASA 85% at the same point). The exact-point columns are the fair comparison; the 1 km columns only show how local the bright spots are.
+- **Earth contact matches at 8 of 9 sites, with one clear exception.** Nobile Rim 1 is about 10 points lower than NASA (76% against 86%); every other site except Malapert is within 8 points. At **Malapert our Earth visibility is 100% while NASA's map says 71%**. We have not tested why. A difference in definition cannot explain it: NASA counts Earth as visible if any part of its disc is unobscured, which is more generous than our rule, yet NASA's value is lower. Untested possibilities: (1) our horizon ignores terrain within 200 m of the lander and puts the lander 2 m above ground, while NASA's map is computed per 120 m pixel and its page does not state a height above ground, so small summit features that block a low Earth may be invisible to us; (2) NASA averages 18.6 years and we cover one; (3) one 120 m NASA pixel against our exact point. Until this is tested, read our Malapert Earth figure as an upper bound.
+- **Limits of this test.** It compares one 120 m NASA pixel with one exact point of ours (we work at 20 m), one year with 18.6 years, and a Sun treated as a point with a Sun treated as a disc. Agreement within about 6 points under those differences is a good sign, not a proof that every number is right.
 
 ## 5. Choosing the site points
 
-NASA's regions are about 15 km wide and only small parts of them are well lit, so a rough coordinate can land in shadow. `snap_sites.py` searches a circle around each start point (7.5 km; 25 km for Haworth), skips ground steeper than 10 degrees, and keeps the point with the best score `lit + 0.5 * Earth ok` over the first 672 hours. It ranks candidates with a coarser, faster horizon, and the final numbers are recomputed with the full pipeline, so they differ slightly.
+NASA's regions are about 15 km wide and only small parts of them are well lit, so a rough coordinate can land in shadow. `snap_sites.py` searches a circle around each start point (7.5 km for every site), skips ground steeper than 10 degrees, and keeps the point with the best score `lit + 0.5 * Earth ok` over the first 672 hours. It ranks candidates with a coarser, faster horizon, and the final numbers are recomputed with the full pipeline, so they differ slightly.
 
 The chosen points for all nine sites are in `pipeline/sites.snapped.yaml`, and the NASA region centres they started from are in `pipeline/sites.nasa9.yaml`.
 
