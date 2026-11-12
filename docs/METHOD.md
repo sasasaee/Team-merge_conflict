@@ -10,6 +10,43 @@ How `pipeline/` turns NASA's Moon height map into the `grid` and `dna` fields of
 | Sun and Earth directions | `pipeline/ephemeris.py` and `sky.py`: ERFA planetary positions plus the IAU 2009 Moon orientation model, computed from the site's own position (Earth is only ~400,000 km away, so ignoring the site's offset from the Moon's centre would put Earth about 0.25 degrees too high). Hourly, from 1 March 2027 00:00 UTC (the app's planned landing), for one year (8,760 hours). Checked against NASA SPICE (DE440), see section 4. |
 | Site points | `pipeline/sites.snapped.yaml` (see section 5), starting from NASA's region centres in `pipeline/sites.nasa9.yaml` (Atia, T-16). |
 
+### Sun and Earth positions with NASA SPICE
+
+To establish an independent, high-precision astronomical reference for Sun and Earth visibility, the R1 pipeline computes topocentric ephemerides directly using NASA's SPICE toolkit (`spiceypy`).
+
+#### 1. SPICE Kernels
+The pipeline loads five official NAIF kernels stored under `kernels/`:
+- `kernels/lsk/naif0012.tls`: Leapseconds kernel (LSK) providing UTC to Ephemeris Time (ET/TDB) time conversion.
+- `kernels/spk/de440s.bsp`: JPL DE440 planetary ephemeris SPK file containing high-accuracy orbital ephemerides for the Sun, Earth, and Moon.
+- `kernels/pck/pck00011.tpc`: Text planetary constants kernel (PCK) providing IAU standard physical parameters and Moon radii ($R = 1,737.4\text{ km}$).
+- `kernels/pck/moon_pa_de440_200625.bpc`: Binary lunar orientation PCK containing DE440 high-precision physical libration angles.
+- `kernels/fk/moon_de440_250416.tf`: Lunar reference frame specification kernel (FK) defining DE440-compatible body-fixed reference frames.
+
+#### 2. Coordinate Frame and Observer Geometry
+Calculations use the lunar body-fixed frame **`MOON_ME`** (Mean Earth / Polar Axis system, DE440 realization). `MOON_ME` directly matches the standard cartographic frame of LOLA digital elevation models, aligning $+Z$ with the mean lunar spin axis and $+X$ with the mean Earth direction ($0^\circ$ longitude), unlike the Principal Axes frame (`MOON_PA`) which is rotated by $\sim 0.029^\circ$ ($\sim 875\text{ m}$ on the surface).
+
+The observer is situated on the lunar surface at planetocentric latitude $\phi$ and east-positive longitude $\lambda$, rather than at the Moon's centre. Topocentric position vectors are determined as follows:
+1. Target vectors relative to the Moon centre ($\vec{r}_{\text{target}}$) are evaluated in `MOON_ME` via `spkpos` with geometric aberration correction (`"NONE"`).
+2. The surface site vector $\vec{r}_{\text{site}} = R \cdot [\cos\phi\cos\lambda, \; \cos\phi\sin\lambda, \; \sin\phi]$ is subtracted to yield the topocentric vector: $\vec{\rho} = \vec{r}_{\text{target}} - \vec{r}_{\text{site}}$.
+3. $\vec{\rho}$ is projected onto the local orthonormal topocentric triad: local East ($\hat{e}$), local North ($\hat{n}$), and local Up ($\hat{u} = \vec{r}_{\text{site}} / R$).
+4. **Conventions:** Azimuth is measured clockwise from North ($0^\circ = \text{North}, 90^\circ = \text{East}, 180^\circ = \text{South}, 270^\circ = \text{West}$) in $[0, 360)^\circ$; elevation is the angle above the local horizontal plane in $[-90, +90]^\circ$.
+
+#### 3. Time Range and Coverage
+Ephemerides are evaluated over a complete one-year mission envelope:
+- **Epoch range:** 1 March 2027 00:00:00 UTC (`2027-03-01T00:00:00Z`) to 28 February 2028 23:00:00 UTC.
+- **Sampling interval:** 1 hour (`step_h = 1`).
+- **Data volume:** 9 Artemis III candidate landing sites $\times$ 8,760 hourly observations ($78,840$ total states), outputting `sun_az`, `sun_el`, `earth_az`, and `earth_el` per site.
+
+#### 4. Reproducibility
+The ephemeris dataset can be regenerated in PowerShell from the repository root:
+```powershell
+python scripts/generate_ephemeris.py
+```
+This command automatically loads all kernels from `kernels/`, reads site definitions from the default configuration `pipeline/sites.yaml`, and writes standard JSON files to `web/public/data/<site-id>.json`. Optional CLI arguments allow overriding input parameters (e.g., `--sites pipeline/sites.snapped.yaml --n 8760`).
+
+#### 5. Validation and Cross-Comparison
+The standalone SPICE pipeline served as the ground truth to validate the lightweight analytical ERFA/IAU-2009 model used in `pipeline/ephemeris.py`. As documented in [Section 4](#4-validation-t-30), cross-comparison across five sites over 74 days (1,776 hours) demonstrated close agreement within approximately $0.003^\circ$ in elevation ($0.002^\circ$ for the Sun, $0.003^\circ$ for Earth) and within $0.004^\circ$ in azimuth. Crucially, this cross-check identified and corrected an initial $\approx 0.25^\circ$ vertical error in the analytical Earth position caused by omitting topocentric surface parallax ($\approx 1,737\text{ km} / 384,400\text{ km}$). Once site parallax was incorporated across both implementations, the reported differences remained within these small margins ($0.002^\circ \text{--} 0.004^\circ$), showing close agreement between the two models over the tested sites and period.
+
 ## 2. Horizon (T-24, T-25)
 
 1. The site's lat/lon is projected to x/y with pyproj, and a 150 km square window of the DEM is read around it (`crop_dem`).
