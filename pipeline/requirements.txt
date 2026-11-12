@@ -5,3 +5,4 @@ pyproj
 pyyaml
 pytest
 matplotlib
+pyerfa
