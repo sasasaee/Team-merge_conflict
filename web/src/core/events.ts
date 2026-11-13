@@ -1,12 +1,12 @@
 // Mission alert feed: turns the hourly simulation into readable events.
-import { HOURS, getSite, wrapHour } from "./sites";
+import { HOURS, siteFor, wrapHour } from "./sites";
 import { simulate } from "./simulate";
 import type { MissionParams } from "./types";
 
 export type MissionEvent = { hour: number; tone: "ok" | "warn" | "fail" | "muted"; text: string };
 
 export function missionEvents(p: MissionParams): MissionEvent[] {
-  const s = getSite(p.siteIdx);
+  const s = siteFor(p);
   const r = simulate(p);
   const n = Math.min(p.durationDays * 24, HOURS);
   const out: MissionEvent[] = [{ hour: 0, tone: "muted", text: "Touchdown. Lander systems online." }];

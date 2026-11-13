@@ -1,5 +1,6 @@
 import { MAX_DELAY_H, SITES, landingLabel, useMission } from "@/core";
 import { Select, Slider } from "@/ui";
+import { CustomPoint } from "./CustomPoint";
 
 const delayText = (h: number) => (h === 0 ? `On time (${landingLabel(0)})` : `${landingLabel(h)}, +${Math.floor(h / 24)} d ${h % 24} h`);
 
@@ -15,6 +16,7 @@ export function MissionForm() {
         options={SITES.map((s, i) => ({ value: String(i), label: s.name }))}
         onChange={(v) => set("siteIdx", Number(v))}
       />
+      <CustomPoint />
       <Slider label="Landing date" value={p.delayH} min={0} max={MAX_DELAY_H} step={6} display={delayText(p.delayH)} onChange={(v) => set("delayH", v)} />
       <Slider label="Battery capacity" value={p.batteryKwh} min={40} max={600} step={10} display={`${p.batteryKwh} kWh`} onChange={(v) => set("batteryKwh", v)} />
       <Slider label="Power use" value={p.loadKw} min={0.5} max={4} step={0.1} display={`${p.loadKw.toFixed(1)} kW`} onChange={(v) => set("loadKw", v)} />

@@ -1,7 +1,7 @@
 // Mission core: data, simulator and shared state. Features and pages import from "@/core" only.
 export { MissionParamsSchema, SimResultSchema, SiteDataSchema, MOCK_PARAMS, MOCK_PARAMS_RISKY, MOCK_SIM_RESULT } from "./schemas";
 export * from "./types";
-export { HOURS, SITES, dataProblems, getSite, getSiteAt, loadRealSites, usingRealData, wrapHour, type DataProblem } from "./sites";
+export { HOURS, SITES, dataProblems, getSite, getSiteAt, loadRealSites, siteFor, usingRealData, wrapHour, type DataProblem } from "./sites";
 export { DNA_HOURS, siteDataFromFile } from "./realSites";
 export { RESERVE_FRACTION, simulate, findBestSite, findSmallestDelay } from "./simulate";
 export { MAX_SCENARIOS, PRESETS, customScenario, runScenario, type Scenario } from "./scenarios";
@@ -10,6 +10,7 @@ export { CALENDAR_DAYS, MAX_DELAY_H, PLANNED_LANDING, landingDate, landingLabel 
 export { siteDna, type Dna } from "./dna";
 export { missionEvents, type MissionEvent } from "./events";
 export { parseQuestion, type AskResult } from "./ask";
+export { findPoint, POLE_LIMIT_LAT, SNAP_KM, type PointMatch } from "./customPoint";
 export {
   stressTest,
   robustnessScore,

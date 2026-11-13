@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Pause, Play } from "lucide-react";
-import { getSite, useMission, wrapHour } from "@/core";
+import { siteFor, useMission, wrapHour } from "@/core";
 import { colors } from "@/ui";
 
 const LINK_COLOR = { ok: colors.earth, weak: colors.warn, lost: colors.fail } as const;
@@ -19,7 +19,7 @@ export function Timeline() {
   const setPlaying = useMission((s) => s.setPlaying);
 
   const n = params.durationDays * 24;
-  const s = getSite(params.siteIdx);
+  const s = siteFor(params);
   const w = 1000 / n;
 
   useEffect(() => {

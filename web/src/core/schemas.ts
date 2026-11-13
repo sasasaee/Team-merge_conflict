@@ -1,5 +1,5 @@
 //Zod schemas for MissionParams and SimResult.
-// Pure logic – no UI imports. R1/R2 will swap getSite(); these schemas stay.
+// Pure logic - no UI imports. R1/R2 will swap getSite(); these schemas stay.
 import { z } from "zod";
 
 //  Primitive enums 
@@ -30,6 +30,9 @@ export const MissionParamsSchema = z.object({
   panelEff: z.number().min(0.05).max(0.5),
   commHoursReq: z.number().int().min(0).max(24),
   durationDays: z.number().int().min(1).max(14),
+  point: z
+    .object({ siteIdx: z.number().int().min(0).max(8), dxKm: z.number().int().min(-2).max(2), dyKm: z.number().int().min(-2).max(2), label: z.string() })
+    .optional(),
 });
 
 //  SimResult 
@@ -60,7 +63,7 @@ export const MOCK_PARAMS: z.infer<typeof MissionParamsSchema> = {
 
 export const MOCK_PARAMS_RISKY: z.infer<typeof MissionParamsSchema> = {
   siteIdx: 2,
-  delayH: 120,         // 5-day delay → pushes into shadow
+  delayH: 120,         // 5-day delay -> pushes into shadow
   batteryKwh: 60,      // small battery
   loadKw: 3.0,
   panelEff: 0.15,      // degraded panels
@@ -84,4 +87,3 @@ export const MOCK_SIM_RESULT: z.infer<typeof SimResultSchema> = {
 // Type aliases re-exported so the rest of the codebase can import from one place
 export type MissionParamsInput = z.input<typeof MissionParamsSchema>;
 export type SimResultOutput = z.infer<typeof SimResultSchema>;
-

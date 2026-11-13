@@ -1,4 +1,4 @@
-import { getSite, useMission, wrapHour } from "@/core";
+import { siteFor, useMission, wrapHour } from "@/core";
 import { colors } from "@/ui";
 
 // Round sky map of the low sky: centre = 14 degrees up, edge = 8 degrees below the horizon level.
@@ -18,10 +18,10 @@ const point = (az: number, el: number): [number, number] => {
 };
 
 export function LocalSky() {
-  const siteIdx = useMission((s) => s.params.siteIdx);
-  const delayH = useMission((s) => s.params.delayH);
+  const params = useMission((s) => s.params);
+  const delayH = params.delayH;
   const timeH = useMission((s) => s.timeH);
-  const s = getSite(siteIdx);
+  const s = siteFor(params);
   const h = wrapHour(timeH + delayH);
 
   const outer = `M ${C - R} ${C} A ${R} ${R} 0 1 0 ${C + R} ${C} A ${R} ${R} 0 1 0 ${C - R} ${C} Z`;
@@ -43,7 +43,7 @@ export function LocalSky() {
         {[0, 4, 8, 12].map((el) => (
           <g key={el}>
             <circle cx={C} cy={C} r={radius(el)} fill="none" stroke={colors.line} strokeDasharray="2 4" />
-            <text x={C + 3} y={C - radius(el) - 3} fontSize={9} fill={colors.muted}>{el}°</text>
+            <text x={C + 3} y={C - radius(el) - 3} fontSize={9} fill={colors.muted}>{el}{"\u00B0"}</text>
           </g>
         ))}
         <path d={`${outer} ${terrain}`} fillRule="evenodd" fill={colors.moon} fillOpacity={0.3} stroke={colors.moon} strokeOpacity={0.7} />
@@ -74,8 +74,8 @@ export function LocalSky() {
       </svg>
 
       <div className="flex flex-wrap justify-center gap-4 text-[11px] text-muted">
-        <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-full bg-sun" /> Sun {s.sunEl[h].toFixed(1)}°</span>
-        <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-full bg-earth" /> Earth {s.earthEl[h].toFixed(1)}°</span>
+        <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-full bg-sun" /> Sun {s.sunEl[h].toFixed(1)}{"\u00B0"}</span>
+        <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-full bg-earth" /> Earth {s.earthEl[h].toFixed(1)}{"\u00B0"}</span>
         <span className="flex items-center gap-1.5"><i className="size-2.5 rounded-sm bg-moon/50" /> Mountains</span>
       </div>
     </div>

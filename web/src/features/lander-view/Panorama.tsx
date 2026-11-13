@@ -1,4 +1,4 @@
-import { getSite, wrapHour } from "@/core";
+import { getSite, wrapHour, type SiteData } from "@/core";
 import { colors } from "@/ui";
 
 // 360-degree view from the lander: x = compass direction, y = height above the horizon.
@@ -9,10 +9,11 @@ const EL_MAX = 13;
 const x = (az: number) => (az / 360) * W;
 const y = (el: number) => H - ((Math.max(EL_MIN, Math.min(EL_MAX, el)) - EL_MIN) / (EL_MAX - EL_MIN)) * H;
 
-type Props = { siteIdx: number; hour: number; horizonDrop?: number };
+// `site` overrides siteIdx (the Planner passes the custom landing point)
+type Props = { siteIdx: number; hour: number; horizonDrop?: number; site?: SiteData };
 
-export function Panorama({ siteIdx, hour, horizonDrop = 0 }: Props) {
-  const s = getSite(siteIdx);
+export function Panorama({ siteIdx, hour, horizonDrop = 0, site }: Props) {
+  const s = site ?? getSite(siteIdx);
   const h = wrapHour(hour);
   const ground = "M0 " + H + " " + s.horizon.map((el, az) => `L${x(az)} ${y(el - horizonDrop)}`).join(" ") + ` L${W} ${y(s.horizon[0] - horizonDrop)} L${W} ${H} Z`;
   const trail = Array.from({ length: 36 }, (_, k) => wrapHour(h - 35 + k));

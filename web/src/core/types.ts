@@ -25,6 +25,9 @@ export type MissionParams = {
   panelEff: number;
   commHoursReq: number;
   durationDays: number;
+  // Optional custom landing point: a point of the site's 5x5 grid (km east / km north of the site, -2..2).
+  // Only used while siteIdx still equals point.siteIdx, so switching site ignores it.
+  point?: { siteIdx: number; dxKm: number; dyKm: number; label: string };
 };
 
 export type SimResult = {

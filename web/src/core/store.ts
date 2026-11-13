@@ -36,11 +36,13 @@ export const useMission = create<MissionState>((set) => ({
   setParam: (key, value) =>
     set((s) => {
       const params = { ...s.params, [key]: value };
+      if (key === "siteIdx" && value !== s.params.siteIdx) delete params.point;
       return { params, timeH: Math.min(s.timeH, params.durationDays * 24 - 1) };
     }),
   patch: (changes) =>
     set((s) => {
       const params = { ...s.params, ...changes };
+      if (changes.siteIdx !== undefined && changes.siteIdx !== s.params.siteIdx && !changes.point) delete params.point;
       return { params, timeH: Math.min(s.timeH, params.durationDays * 24 - 1) };
     }),
   setTime: (h) => set({ timeH: h }),

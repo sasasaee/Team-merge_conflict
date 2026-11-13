@@ -1,4 +1,4 @@
-import { VERDICT_LABEL, getSite, useMission, useSim, wrapHour } from "@/core";
+import { VERDICT_LABEL, siteFor, useMission, useSim, wrapHour } from "@/core";
 import { StatTile } from "@/ui";
 
 const pct = (x: number) => String(Math.round(x * 100));
@@ -7,12 +7,12 @@ export function Metrics() {
   const params = useMission((s) => s.params);
   const timeH = useMission((s) => s.timeH);
   const r = useSim();
-  const s = getSite(params.siteIdx);
+  const s = siteFor(params);
   const h = wrapHour(timeH + params.delayH);
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      <StatTile label="Sun height now" value={s.sunEl[h].toFixed(1)} unit="°" tone="sun" hint={s.lit[h] ? "Sunlit" : "In shadow"} />
+      <StatTile label="Sun height now" value={s.sunEl[h].toFixed(1)} unit={"\u00B0"} tone="sun" hint={s.lit[h] ? "Sunlit" : "In shadow"} />
       <StatTile label="Time in sunlight" value={pct(r.litPct)} unit="%" />
       <StatTile label="Earth contact" value={pct(r.earthOkPct)} unit="%" tone="earth" />
       <StatTile

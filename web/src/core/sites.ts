@@ -6,16 +6,17 @@ import type { SiteData } from "./types";
 // (8,760 h = one year from the planned landing). Set by loadRealSites() before the app renders.
 export let HOURS = 24 * 28;
 
+// lat/lon: planetocentric degrees (east-positive) of each site point, the same values as in web/public/data/<id>.json
 export const SITES = [
-  { id: "malapert", name: "Malapert Massif" },
-  { id: "mons-mouton", name: "Mons Mouton" },
-  { id: "nobile-rim-1", name: "Nobile Rim 1" },
-  { id: "haworth", name: "Haworth" },
-  { id: "de-gerlache-rim-2", name: "de Gerlache Rim 2" },
-  { id: "mons-mouton-plateau", name: "Mons Mouton Plateau" },
-  { id: "nobile-rim-2", name: "Nobile Rim 2" },
-  { id: "peak-near-cabeus-b", name: "Peak near Cabeus B" },
-  { id: "slater-plain", name: "Slater Plain" },
+  { id: "malapert", name: "Malapert Massif", lat: -85.9671, lon: -2.2659 },
+  { id: "mons-mouton", name: "Mons Mouton", lat: -84.3884, lon: 30.8775 },
+  { id: "nobile-rim-1", name: "Nobile Rim 1", lat: -85.2283, lon: 36.5736 },
+  { id: "haworth", name: "Haworth", lat: -86.9338, lon: -23.0496 },
+  { id: "de-gerlache-rim-2", name: "de Gerlache Rim 2", lat: -88.3732, lon: -69.1712 },
+  { id: "mons-mouton-plateau", name: "Mons Mouton Plateau", lat: -84.1899, lon: 28.9515 },
+  { id: "nobile-rim-2", name: "Nobile Rim 2", lat: -84.0506, lon: 59.2629 },
+  { id: "peak-near-cabeus-b", name: "Peak near Cabeus B", lat: -85.594, lon: -67.0533 },
+  { id: "slater-plain", name: "Slater Plain", lat: -87.4356, lon: 113.6979 },
 ] as const;
 
 const PROFILES = [
@@ -98,6 +99,12 @@ export function getSiteAt(i: number, dxKm = 0, dyKm = 0): SiteData {
     moved.set(key, hit);
   }
   return hit;
+}
+
+// The data for the plan's landing point: the custom grid point when one is set for this site, otherwise the site itself.
+export function siteFor(p: { siteIdx: number; point?: { siteIdx: number; dxKm: number; dyKm: number } }): SiteData {
+  const pt = p.point && p.point.siteIdx === p.siteIdx ? p.point : null;
+  return pt ? getSiteAt(p.siteIdx, pt.dxKm, pt.dyKm) : getSite(p.siteIdx);
 }
 
 export const wrapHour = (h: number) => ((h % HOURS) + HOURS) % HOURS;

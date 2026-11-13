@@ -1,9 +1,8 @@
-import { useMission } from "@/core";
+import { siteFor, useMission } from "@/core";
 import { Panorama } from "./Panorama";
 
 export function LanderView() {
-  const siteIdx = useMission((s) => s.params.siteIdx);
-  const delayH = useMission((s) => s.params.delayH);
+  const params = useMission((s) => s.params);
   const timeH = useMission((s) => s.timeH);
-  return <Panorama siteIdx={siteIdx} hour={timeH + delayH} />;
+  return <Panorama siteIdx={params.siteIdx} site={siteFor(params)} hour={timeH + params.delayH} />;
 }

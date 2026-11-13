@@ -1,22 +1,27 @@
-// R3 – Mission Simulator Logic. UI reads from these pure functions; no React imports here.
-import { HOURS, SITES, getSite, getSiteAt, wrapHour } from "./sites";
+// R3 - Mission Simulator Logic. UI reads from these pure functions; no React imports here.
+import { HOURS, SITES, getSiteAt, wrapHour } from "./sites";
 import type { Cause, MissionParams, SimResult, Verdict } from "./types";
 
-const PANEL_AREA_M2 = 10;        // m²  — fixed hardware constant
-const SUN_KW_PER_M2 = 1.361;     // kW/m² solar constant at the Moon
+const PANEL_AREA_M2 = 10;        // m2  - fixed hardware constant
+const SUN_KW_PER_M2 = 1.361;     // kW/m2 solar constant at the Moon
 export const RESERVE_FRACTION = 0.25; // below 25 % of capacity = power failure
 
 // `offset` moves the lander to a nearby grid point (km east / km north). Real data only; without it the site itself is used.
 export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1, offset?: { dxKm: number; dyKm: number }): SimResult {
-  const s = offset ? getSiteAt(p.siteIdx, offset.dxKm, offset.dyKm) : getSite(p.siteIdx);
+  const base = p.point && p.point.siteIdx === p.siteIdx ? p.point : { dxKm: 0, dyKm: 0 };
+  // A what-if move is added to the custom point; if that lands outside the 5x5 grid, the custom point itself is used
+  const tx = base.dxKm + (offset?.dxKm ?? 0);
+  const ty = base.dyKm + (offset?.dyKm ?? 0);
+  const onGrid = Math.abs(tx) <= 2 && Math.abs(ty) <= 2;
+  const s = onGrid ? getSiteAt(p.siteIdx, tx, ty) : getSiteAt(p.siteIdx, base.dxKm, base.dyKm);
   const n = Math.min(p.durationDays * 24, HOURS);
 
   // Gross solar power (kW) the panels can deliver when fully illuminated
   const panelKw = PANEL_AREA_M2 * p.panelEff * effScale * SUN_KW_PER_M2;
-  // Battery reserve floor — lander must stay above this level
+  // Battery reserve floor - lander must stay above this level
   const reserve = p.batteryKwh * RESERVE_FRACTION;
 
-  // ── State ────────────────────────────────────────────────────────────────
+  // -- State ----------------------------------------------------------------
   let soc = p.batteryKwh;       // start fully charged (kWh)
   let minSoc = soc;
   let failHour: number | null = null;
@@ -40,7 +45,7 @@ export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1, offset
   for (let k = 0; k < n; k++) {
     const h = wrapHour(k + p.delayH + extraDelayH);
 
-    // ── Battery charging and consumption ──────────────────────────────────
+    // -- Battery charging and consumption ----------------------------------
     const charge = s.lit[h] ? panelKw : 0;   // zero charge during shadow
     const net = charge - p.loadKw;            // net energy this hour (kWh)
     soc = Math.min(p.batteryKwh, soc + net);  // cap at full capacity
@@ -55,7 +60,7 @@ export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1, offset
       cause = "power";
     }
 
-    // ── Earth-link / communication ────────────────────────────────────────
+    // -- Earth-link / communication ----------------------------------------
     const e = s.earth[h];
     if (e === "ok") {
       earthOkH++;
@@ -65,7 +70,7 @@ export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1, offset
     blackoutRun = e === "lost" ? blackoutRun + 1 : 0;
     longestBlackout = Math.max(longestBlackout, blackoutRun);
 
-    // ── End-of-day rule check (every 24 h) ───────────────────────────────
+    // -- End-of-day rule check (every 24 h) -------------------------------
     if (k % 24 === 23) {
       worstDayOkH = Math.min(worstDayOkH, dayOkH);
 
@@ -81,8 +86,8 @@ export function simulate(p: MissionParams, extraDelayH = 0, effScale = 1, offset
     }
   }
 
-  // ── Verdict ───────────────────────────────────────────────────────────
-  // "warn" if battery came within 1.5× reserve OR any day had a comm shortfall
+  // -- Verdict -----------------------------------------------------------
+  // "warn" if battery came within 1.5x reserve OR any day had a comm shortfall
   const powerAtRisk = minSoc < reserve * 1.5;
   const commAtRisk  = worstDayOkH < p.commHoursReq + 2 || commViolationDays > 0;
   const verdict: Verdict =
