@@ -2,21 +2,30 @@
   <img src="docs/banner.svg" alt="MoonScope: will your Moon landing survive?" width="100%">
 </p>
 
+<h1 align="center">🌑 MoonScope</h1>
+
+<p align="center">
+  <b>Will your Moon landing survive?</b><br>
+  <sub>Simulate every hour of a lunar south pole mission, from sunlight to battery to Earth link.</sub>
+</p>
+
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=white&labelColor=0e1524" alt="React 19">
   <img src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white&labelColor=0e1524" alt="TypeScript">
   <img src="https://img.shields.io/badge/Vite-8-8b5cf6?style=flat-square&logo=vite&logoColor=white&labelColor=0e1524" alt="Vite 8">
   <img src="https://img.shields.io/badge/Tailwind-4-38bdf8?style=flat-square&logo=tailwindcss&logoColor=white&labelColor=0e1524" alt="Tailwind 4">
   <img src="https://img.shields.io/badge/NASA_Space_Apps-2026-f5a524?style=flat-square&labelColor=0e1524" alt="NASA Space Apps 2026">
+  <img src="https://img.shields.io/badge/status-prototype-22c55e?style=flat-square&labelColor=0e1524" alt="Status: prototype">
 </p>
 
 <p align="center">
-  <a href="#what-it-does">What it does</a> &middot;
-  <a href="#how-it-works">How it works</a> &middot;
-  <a href="#quick-start">Quick start</a> &middot;
-  <a href="#architecture">Architecture</a> &middot;
-  <a href="#data">Data</a> &middot;
-  <a href="#team">Team</a>
+  <a href="#-what-it-does">What it does</a> &nbsp;·&nbsp;
+  <a href="#-how-it-works">How it works</a> &nbsp;·&nbsp;
+  <a href="#-quick-start">Quick start</a> &nbsp;·&nbsp;
+  <a href="#-architecture">Architecture</a> &nbsp;·&nbsp;
+  <a href="#-data">Data</a> &nbsp;·&nbsp;
+  <a href="#-roadmap">Roadmap</a> &nbsp;·&nbsp;
+  <a href="#-team">Team</a>
 </p>
 
 ---
@@ -25,36 +34,40 @@ At the lunar south pole the Sun never climbs more than a few degrees above the h
 lander in shadow for days, and the same terrain can hide Earth and cut the radio link. A landing site that looks perfect on one date
 can kill the mission two days later.
 
-**MoonScope** answers one question: *will this mission survive?* Pick a site and a landing date, set the lander's battery and power
-use, and MoonScope simulates every hour of the mission. It shows when the panels charge, when Earth is in view, how low the battery
-falls, and the smallest change that turns a failing plan into a working one.
+> [!IMPORTANT]
+> **MoonScope answers one question: *will this mission survive?***
+> Pick a site and a landing date, set the lander's battery and power use, and MoonScope simulates every hour of the mission.
+> It shows when the panels charge, when Earth is in view, how low the battery falls, and the smallest change that turns a failing plan into a working one.
 
-## What it does
+## 🚀 What it does
 
 | Page | Route | What you get |
 | :--- | :--- | :--- |
-| **Home** | `#/` | What MoonScope is, with a live verdict for the current plan |
-| **Mission planner** | `#/plan` | The full dashboard: site map, sky view, mission settings, timeline, 360 degree lander view, site comparison, fixes, alerts and Ask MoonScope |
-| **Rescue Mode** | `#/rescue` | A 60-second game. Something breaks after touchdown and you have 72 hours to keep the lander alive |
-| **Survival Calendar** | `#/calendar` | Sixty landing dates coloured by result, with the earliest date the mission fails |
-| **Shadow DNA** | `#/sites` | A ring fingerprint of light and Earth contact for every site, side by side |
+| 🏠 **Home** | `#/` | What MoonScope is, with a live verdict for the current plan |
+| 🛰️ **Mission planner** | `#/plan` | The full dashboard: site map, sky view, mission settings, timeline, 360 degree lander view, site comparison, fixes, alerts and Ask MoonScope |
+| 🛟 **Rescue Mode** | `#/rescue` | A 60-second game. Something breaks after touchdown and you have 72 hours to keep the lander alive |
+| 📅 **Survival Calendar** | `#/calendar` | Sixty landing dates coloured by result, with the earliest date the mission fails |
+| 🧬 **Shadow DNA** | `#/sites` | A ring fingerprint of light and Earth contact for every site, side by side |
 
 ### Inside the planner
 
 | Brick | Purpose |
 | :--- | :--- |
-| Moon map | Five south-pole sites, each dot coloured by its verdict for your current settings |
-| Local sky | Where the Sun and Earth sit above the horizon right now |
-| Mission settings | Site, landing date, battery, power use, panel efficiency, Earth-contact hours, mission length |
-| Metrics | Lowest battery, sunlit hours, Earth contact and the verdict |
-| Timeline | Hour-by-hour sunlight and Earth-link bars with a playable cursor |
-| Lander's-eye view | A 360 degree panorama of the horizon, the Sun's path and Earth |
-| Compare | Every site under the same settings |
-| Advice | Why the plan fails, plus one-click fixes (land later, switch site) |
-| Mission alerts | Readable events: sunset, signal loss, battery below reserve. Click one to jump there |
-| Ask MoonScope | Type *"land 3 days late with 20% weaker panels"* and the plan updates. No AI key needed |
+| 🗺️ Moon map | Five south-pole sites, each dot coloured by its verdict for your current settings |
+| 🧭 Local sky | Where the Sun and Earth sit above the horizon right now |
+| ⚙️ Mission settings | Site, landing date, battery, power use, panel efficiency, Earth-contact hours, mission length |
+| 📊 Metrics | Lowest battery, sunlit hours, Earth contact and the verdict |
+| ⏱️ Timeline | Hour-by-hour sunlight and Earth-link bars with a playable cursor |
+| 👁️ Lander's-eye view | A 360 degree panorama of the horizon, the Sun's path and Earth |
+| ⚖️ Compare | Every site under the same settings |
+| 💡 Advice | Why the plan fails, plus one-click fixes (land later, switch site) |
+| 🔔 Mission alerts | Readable events: sunset, signal loss, battery below reserve. Click one to jump there |
+| 💬 Ask MoonScope | Type *"land 3 days late with 20% weaker panels"* and the plan updates |
 
-### Rescue Mode
+> [!TIP]
+> Ask MoonScope needs **no AI key**. It works fully offline.
+
+### 🛟 Rescue Mode
 
 Choose a crisis (dust on the panels, a late landing or a stuck heater). The game starts just before sunset with the battery at 35%.
 Every move re-runs the simulator:
@@ -68,7 +81,7 @@ Every move re-runs the simulator:
 
 Doing nothing always loses. Easy sites need one good move; hard sites need a combination.
 
-## How it works
+## ⚡ How it works
 
 <p align="center">
   <img src="docs/how-it-works.svg" alt="Sunlight, Earth link and battery over one mission" width="100%">
@@ -76,10 +89,10 @@ Doing nothing always loses. Easy sites need one good move; hard sites need a com
 
 For every hour of the mission MoonScope checks three things:
 
-1. **Is the Sun above the local horizon?** The Sun's elevation and direction are compared with the terrain height in that direction.
+1. **☀️ Is the Sun above the local horizon?** The Sun's elevation and direction are compared with the terrain height in that direction.
    If it clears the ridge, the panels charge.
-2. **Can the lander see Earth?** The same test for Earth gives a good, weak or lost link.
-3. **What is left in the battery?**
+2. **📡 Can the lander see Earth?** The same test for Earth gives a good, weak or lost link.
+3. **🔋 What is left in the battery?**
 
 ```text
 battery[h + 1] = min(capacity, battery[h] + solar_power[h] - power_use)
@@ -90,7 +103,13 @@ The plan **fails** if the battery drops below the safe reserve, or if daily Eart
 **at risk** if it only just passes. MoonScope then reruns the mission with later landing dates and other sites to find the smallest fix,
 and stress-tests a working plan against 1, 3 and 5 day launch delays.
 
-## Quick start
+| Verdict | Meaning |
+| :--- | :--- |
+| 🟢 **Survives** | Battery stays above reserve and Earth contact is enough |
+| 🟡 **At risk** | The plan only just passes |
+| 🔴 **Fails** | Battery drops below reserve, or Earth contact falls short |
+
+## 🛠️ Quick start
 
 You need **Node.js 20 or later** and **pnpm**.
 
@@ -101,7 +120,7 @@ pnpm --dir web install
 pnpm dev
 ```
 
-Open <http://localhost:5173>.
+Open <http://localhost:5173> and you are in.
 
 | Command | What it does |
 | :--- | :--- |
@@ -109,7 +128,7 @@ Open <http://localhost:5173>.
 | `pnpm build` | Type-check and build to `web/dist` |
 | `pnpm --dir web preview` | Serve the production build locally |
 
-## Architecture
+## 🧱 Architecture
 
 MoonScope is built like Lego. Every panel is a self-contained **brick** that reads shared state from `core` and draws with pieces
 from `ui`. Bricks never import each other, so five people can work on five bricks without merge conflicts.
@@ -147,7 +166,10 @@ flowchart LR
     X --> P3 & P4 & P5
 ```
 
-### Folder structure
+<details>
+<summary><b>📁 Folder structure</b></summary>
+
+<br>
 
 ```text
 moonscope/
@@ -174,7 +196,12 @@ moonscope/
         `-- pages/          home, planner, rescue, calendar, sites
 ```
 
+</details>
+
 ### Import rules
+
+> [!IMPORTANT]
+> Keep these rules and bricks will never conflict with each other.
 
 | Folder | May import from |
 | :--- | :--- |
@@ -183,7 +210,10 @@ moonscope/
 | `features/*` | `@/core`, `@/ui` |
 | `pages/*` | `@/core`, `@/ui`, `@/features/*` |
 
-### Add a new brick
+<details>
+<summary><b>➕ Add a new brick</b></summary>
+
+<br>
 
 1. Create `web/src/features/my-brick/MyBrick.tsx`:
 
@@ -208,10 +238,13 @@ moonscope/
 
 3. Add `myBrick` to the list in `web/src/pages/planner/blocks.ts`. That is the only shared file you touch.
 
-## Data
+</details>
 
-The prototype runs on **sample data** generated in `web/src/core/sites.ts`, shaped exactly like the real data will be:
-one lunar month (672 hours) per site with Sun and Earth positions, the terrain horizon and the Earth link state.
+## 🛰️ Data
+
+> [!NOTE]
+> The prototype runs on **sample data** generated in `web/src/core/sites.ts`, shaped exactly like the real data will be:
+> one lunar month (672 hours) per site with Sun and Earth positions, the terrain horizon and the Earth link state.
 
 The real pipeline replaces it with one JSON file per site in `web/public/data/`, built from:
 
@@ -221,7 +254,7 @@ The real pipeline replaces it with one JSON file per site in `web/public/data/`,
 | [NASA NAIF SPICE](https://naif.jpl.nasa.gov/naif/) ephemerides | Sun and Earth direction from each site, hour by hour |
 | [NASA SVS CGI Moon Kit](https://svs.gsfc.nasa.gov/4720) | Moon imagery on the site map |
 
-## Roadmap
+## 🗺️ Roadmap
 
 - [x] Hour-by-hour power and communication simulator
 - [x] Mission planner with fixes and delay stress test
@@ -232,7 +265,7 @@ The real pipeline replaces it with one JSON file per site in `web/public/data/`,
 - [ ] 3D Moon globe
 - [ ] Public deployment
 
-## Team
+## 👩‍🚀 Team
 
 **Merge_Conflict**, NASA Space Apps Challenge 2026.
 
@@ -243,3 +276,9 @@ The real pipeline replaces it with one JSON file per site in `web/public/data/`,
 | R2 | Humaira | Moon terrain and shadow data (Python, LOLA) |
 | R3 | Saeera | Mission simulator logic (TypeScript) |
 | R4 | Salsabil | 3D Moon, backend and deployment |
+
+---
+
+<p align="center">
+  <sub>Built for the NASA Space Apps Challenge 2026 · Made with 🌙 by Team Merge_Conflict</sub>
+</p>
