@@ -19,6 +19,6 @@ pipeline/out/
 pipeline/demo_out/
 __pycache__/
 .pytest_cache/
-
+web/coverage/
 *.ps1
 /pnpm-lock.yaml
