@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
-import { SITES, simulate, useMission } from "@/core";
+import { SITES, siteFor, simulate, useMission, wrapHour } from "@/core";
 import { PALETTE } from "@/ui";
+import { SiteChips } from "@/features/moon-map/MoonMap";
 
 // 3D Moon for the Planner (T-41/T-42). Same job as the flat MoonMap: show the 9 sites, colour them by verdict, click to pick one.
 // Textures live in web/public (see the README for their source):
@@ -31,6 +32,30 @@ function toXYZ(latDeg: number, lonDeg: number, r = 1): [number, number, number] 
   const lat = THREE.MathUtils.degToRad(latDeg);
   const phi = THREE.MathUtils.degToRad(lonDeg + 180);
   return [-r * Math.cos(phi) * Math.cos(lat), r * Math.sin(lat), r * Math.sin(phi) * Math.cos(lat)];
+}
+
+// Direction of the Sun in world space, from the selected site's Sun azimuth/elevation at the current timeline hour.
+// The Sun is so far away that this direction is the same for the whole Moon, so one directional light along it
+// gives the real day/night side, and the lit half turns around the pole as the hour changes.
+function sunDirection(latDeg: number, lonDeg: number, azDeg: number, elDeg: number): [number, number, number] {
+  const p = new THREE.Vector3(...toXYZ(latDeg, lonDeg));
+  const up = p.clone().normalize();
+  const north = new THREE.Vector3(...toXYZ(latDeg + 0.01, lonDeg)).sub(p).normalize();
+  const east = new THREE.Vector3(...toXYZ(latDeg, lonDeg + 0.01)).sub(p).normalize();
+  const az = THREE.MathUtils.degToRad(azDeg);
+  const el = THREE.MathUtils.degToRad(elDeg);
+  const d = north.multiplyScalar(Math.cos(el) * Math.cos(az)).add(east.multiplyScalar(Math.cos(el) * Math.sin(az))).add(up.multiplyScalar(Math.sin(el)));
+  return [d.x * 10, d.y * 10, d.z * 10];
+}
+
+// "Fully lit" mode: a light that sits on the camera, so whatever side you turn to is lit (like a torch)
+function CameraLight() {
+  const light = useRef<THREE.DirectionalLight>(null);
+  const { camera } = useThree();
+  useFrame(() => {
+    if (light.current) light.current.position.copy(camera.position);
+  });
+  return <directionalLight ref={light} intensity={2.2} />;
 }
 
 function useTexture(url: string, srgb: boolean) {
@@ -111,24 +136,58 @@ export function MoonGlobe() {
   const setParam = useMission((s) => s.setParam);
   const verdicts = useMemo(() => SITES.map((_, i) => simulate({ ...params, siteIdx: i }).verdict), [params]);
   const [still] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const timeH = useMission((s) => s.timeH);
+  const site = siteFor(params);
+  const h = wrapHour(timeH + params.delayH);
+  const [lat, lon] = COORDS[SITES[params.siteIdx].id];
+  const sunPos = sunDirection(lat, lon, site.sunAz[h], site.sunEl[h]);
+  const [light, setLight] = useState<"sun" | "full">("sun");
 
   return (
     <div className="flex h-full flex-col gap-3">
       <div data-theme="dark" className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#03050a]">
         {/* Camera looks up at the south pole from below, tilted a little so the rims and craters show */}
         <Canvas camera={{ position: [0, -2.3, 1.1], fov: 35, near: 0.01, far: 20 }} dpr={[1, 2]}>
-          <ambientLight intensity={0.15} />
-          {/* Low Sun, like at the real south pole: long shadows, lit rims */}
-          <directionalLight position={[4, -0.4, 1.5]} intensity={2.6} />
+          {light === "sun" ? (
+            <>
+              {/* Faint fill so the night side is not pure black */}
+              <ambientLight intensity={0.08} />
+              {/* The real Sun direction for the selected site and timeline hour: press play on the timeline to watch day and night move */}
+              <directionalLight position={sunPos} intensity={2.8} />
+            </>
+          ) : (
+            <>
+              <ambientLight intensity={0.35} />
+              <CameraLight />
+            </>
+          )}
           <Moon />
           {SITES.map((s, i) => (
             <Marker key={s.id} idx={i} name={s.name} color={PALETTE[verdicts[i]].dark} active={i === params.siteIdx} onPick={(k) => setParam("siteIdx", k)} />
           ))}
           <OrbitControls enablePan={false} minDistance={0.4} maxDistance={4} autoRotate={!still} autoRotateSpeed={0.25} target={[0, -0.85, 0]} />
         </Canvas>
+        <div role="group" aria-label="Lighting" className="absolute top-2 right-2 flex gap-1">
+          {(["sun", "full"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={light === m}
+              onClick={() => setLight(m)}
+              title={m === "sun" ? "Light the Moon from the real Sun position at this hour" : "Light whatever side you are looking at"}
+              className="rounded-full border border-line bg-bg/70 px-2.5 py-0.5 text-[11px] font-semibold text-muted"
+            >
+              {m === "sun" ? "Real sunlight" : "Fully lit"}
+            </button>
+          ))}
+        </div>
         <p className="pointer-events-none absolute bottom-2 left-3 text-[11px] text-muted">Drag to turn, scroll to zoom</p>
+        {light === "sun" && <p className="num pointer-events-none absolute right-3 bottom-2 text-[11px] text-sun">
+          Sun {site.sunEl[h].toFixed(1)}{"\u00B0"} up, from {Math.round(site.sunAz[h])}{"\u00B0"}
+        </p>}
       </div>
-      <p className="text-center text-[11px] text-muted">3D view of the lunar south pole. Click a dot to choose a site.</p>
+      <SiteChips />
+      <p className="text-center text-[11px] text-muted">Real sunlight: the dark side stays dark until the Sun moves (press play on the Timeline). Fully lit: see every side.</p>
     </div>
   );
 }
