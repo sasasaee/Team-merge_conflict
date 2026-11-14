@@ -6,6 +6,7 @@ import { AboutDialog } from "./AboutDialog";
 import { DataNotice } from "./DataNotice";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { PageLoader } from "./PageLoader";
+import { HowItWorks } from "./HowItWorks";
 import { ThemeToggle } from "./ThemeToggle";
 import { usePage, type Page } from "./usePage";
 
@@ -30,7 +31,7 @@ export function App() {
   // reducedMotion="user": animations switch off when the OS asks for reduced motion
   return (
     <MotionConfig reducedMotion="user">
-      <NavBar current={page} extra={<AboutDialog />} end={<ThemeToggle />} />
+      <NavBar current={page} extra={<AboutDialog />} end={<div className="flex items-center gap-2"><HowItWorks page={page} /><ThemeToggle /></div>} />
       <DataNotice />
       <motion.div key={page} className="min-h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
         {/* key={page}: an error on one page is cleared when you open another */}

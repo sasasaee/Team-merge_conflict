@@ -2,12 +2,13 @@ import type { ReactNode } from "react";
 import clsx from "clsx";
 import { motion } from "motion/react";
 
-type Props = { title: string; icon?: ReactNode; className?: string; delay?: number; children?: ReactNode };
+type Props = { title: string; icon?: ReactNode; className?: string; delay?: number; tourId?: string; children?: ReactNode };
 
 // Card around every planner brick. Fades up on first show; `delay` staggers a group of panels.
-export function Panel({ title, icon, className, delay = 0, children }: Props) {
+export function Panel({ title, icon, className, delay = 0, tourId, children }: Props) {
   return (
     <motion.section
+      data-tour={tourId}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: "easeOut" }}

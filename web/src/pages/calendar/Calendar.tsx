@@ -66,7 +66,7 @@ export function Calendar() {
           <span><i className="mr-1.5 inline-block size-3 rounded-sm bg-fail/60" />{VERDICT_LABEL.fail}: {counts.fail} days</span>
         </div>
 
-        <div className="mt-6 grid grid-cols-7 gap-1.5 sm:gap-2">
+        <div data-tour="calendar-grid" className="mt-6 grid grid-cols-7 gap-1.5 sm:gap-2">
           {WEEKDAYS.map((w) => (
             <div key={w} className="pb-1 text-center text-xs text-muted">{w}</div>
           ))}

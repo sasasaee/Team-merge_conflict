@@ -8,7 +8,7 @@ export function Planner() {
       <Header />
       <main className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-12">
         {BLOCKS.map(({ id, title, icon: Icon, span, Component }, i) => (
-          <Panel key={id} title={title} icon={<Icon size={16} />} className={span} delay={i * 0.05}>
+          <Panel key={id} tourId={id} title={title} icon={<Icon size={16} />} className={span} delay={i * 0.05}>
             <Component />
           </Panel>
         ))}

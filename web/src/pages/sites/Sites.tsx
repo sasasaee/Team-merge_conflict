@@ -48,7 +48,7 @@ export function Sites() {
         </p>
 
         {!usingRealData() && <p className="mt-4 text-sm text-muted">Showing sample data (real site files not found).</p>}
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div data-tour="dna-cards" className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map(({ site, i, dna }) => (
             <article key={site.id} className="rounded-3xl border border-line bg-gradient-to-b from-surface to-bg p-5">
               <DnaRing siteIdx={i} />

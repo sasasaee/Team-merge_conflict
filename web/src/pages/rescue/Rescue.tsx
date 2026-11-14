@@ -33,7 +33,7 @@ function Intro({ onStart }: { onStart: (c: Crisis) => void }) {
         Your lander has just touched down and something has gone wrong. Night is falling. Keep the battery alive for 72 hours until help
         arrives. Every move you make re-runs the mission simulator.
       </p>
-      <div className="mt-8 max-w-xs">
+      <div data-tour="rescue-site" className="mt-8 max-w-xs">
         <Select
           label="Landing site"
           value={String(siteIdx)}
@@ -42,7 +42,7 @@ function Intro({ onStart }: { onStart: (c: Crisis) => void }) {
         />
       </div>
       <h2 className="mt-10 text-xl font-semibold">Choose what goes wrong</h2>
-      <div className="mt-4 grid gap-4 md:grid-cols-3">
+      <div data-tour="crises" className="mt-4 grid gap-4 md:grid-cols-3">
         {CRISES.map((c) => (
           <button
             key={c.id}

@@ -8,7 +8,7 @@ export function Header() {
   const result = useSim();
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface/80 px-5 py-3 text-sm">
+    <header data-tour="verdict" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface/80 px-5 py-3 text-sm">
       <span className="text-muted">
         Landing at <b className="text-text">{SITES[siteIdx].name}</b> on <b className="text-text">{landingLabel(delayH)} 2027</b>
       </span>
