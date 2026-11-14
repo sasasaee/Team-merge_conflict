@@ -3,8 +3,8 @@ import clsx from "clsx";
 import { SITES, simulate, useMission } from "@/core";
 import { colors } from "@/ui";
 
-// NASA SVS "CGI Moon Kit" colour map from LRO (svs.gsfc.nasa.gov/4720)
-const MOON_TEXTURE = "https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_poles_1k.jpg";
+// Moon colour map, served locally from web/public so it works offline (see the README for its source)
+const MOON_TEXTURE = import.meta.env.BASE_URL + "moon-color.jpg";
 
 export function MoonMap() {
   const params = useMission((s) => s.params);
@@ -57,7 +57,7 @@ export function MoonMap() {
           </button>
         ))}
       </div>
-      <p className="text-center text-[11px] text-muted">Preview using NASA LRO imagery. The 3D globe (R4) replaces this brick.</p>
+      <p className="text-center text-[11px] text-muted">Moon preview. Click a site to choose it.</p>
     </div>
   );
 }

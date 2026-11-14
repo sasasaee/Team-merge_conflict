@@ -3,7 +3,7 @@
 // span(brick, "lg:col-span-N") sets a panel's width: 12 columns = full row on laptop.
 // Write the full class name so Tailwind can find it.
 import type { Block } from "@/ui";
-import { moonMap } from "@/features/moon-map";
+import { moonGlobe } from "@/features/moon-globe";
 import { localSky } from "@/features/local-sky";
 import { missionForm } from "@/features/mission-form";
 import { metrics } from "@/features/metrics";
@@ -19,7 +19,7 @@ const span = (b: Block, cls: string): Block => ({ ...b, span: cls });
 
 export const BLOCKS: Block[] = [
   // Row 1: where, sky, settings
-  span(moonMap, "lg:col-span-5"),
+  span(moonGlobe, "lg:col-span-5"),
   span(localSky, "lg:col-span-4"),
   span(missionForm, "lg:col-span-3"),
   // Row 2: the whole mission at a glance
